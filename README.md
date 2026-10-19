@@ -1,98 +1,197 @@
 <h4 align="right"><strong>English</strong> | <a href="README_zh.md">简体中文</a></h4>
-<p align="center">
-    <img src="https://raw.githubusercontent.com/tickcount/luci-theme-outline/master/.dev/public/outline/images/logo.png" width="96" alt="Outline LuCI Theme"/>
-</p>
-<p align="center"><strong>Outline — a ChatGPT-style LuCI theme for OpenWrt.</strong></p>
+
 <div align="center">
-  <a href="https://openwrt.org"><img alt="OpenWrt" src="https://img.shields.io/badge/OpenWrt-%E2%89%A523.05-00B5E2?logo=openwrt&logoColor=white"></a>
-  <a href="https://github.com/tickcount/luci-theme/releases/latest"><img alt="GitHub release" src="https://img.shields.io/github/v/release/tickcount/luci-theme"></a>
-  <a href="https://github.com/tickcount/luci-theme/releases"><img alt="Downloads" src="https://img.shields.io/github/downloads/tickcount/luci-theme/total"></a>
+
+<img src=".dev/public/outline/images/favicon.svg" alt="Outline" width="88" height="88">
+
+<h1>Outline</h1>
+
+**A ChatGPT-style LuCI theme for OpenWrt.**
+
+<a href="https://github.com/tickcount/luci-theme-outline/releases/latest"><picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/github/release/tickcount/luci-theme-outline.svg?variant=secondary&font=geist&mode=dark"><img alt="Latest release" src="https://shieldcn.dev/github/release/tickcount/luci-theme-outline.svg?variant=secondary&font=geist&mode=light"></picture></a>
+<a href="https://github.com/tickcount/luci-theme-outline/actions/workflows/ci.yml"><picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/github/ci/tickcount/luci-theme-outline.svg?variant=secondary&font=geist&mode=dark"><img alt="CI" src="https://shieldcn.dev/github/ci/tickcount/luci-theme-outline.svg?variant=secondary&font=geist&mode=light"></picture></a>
+<a href="https://github.com/tickcount/luci-theme-outline/releases"><picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/github/downloads/tickcount/luci-theme-outline.svg?variant=secondary&font=geist&mode=dark"><img alt="Downloads" src="https://shieldcn.dev/github/downloads/tickcount/luci-theme-outline.svg?variant=secondary&font=geist&mode=light"></picture></a>
+<a href="LICENSE"><picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/badge/license-Apache%202.0.svg?variant=secondary&font=geist&logo=lu:Scale&mode=dark"><img alt="License: Apache 2.0" src="https://shieldcn.dev/badge/license-Apache%202.0.svg?variant=secondary&font=geist&logo=lu:Scale&mode=light"></picture></a>
+<br>
+<a href="https://openwrt.org/"><picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/badge/OpenWrt-%E2%89%A5%2023.05%20%C2%B7%20ipk%20%C2%B7%20apk.svg?variant=secondary&font=geist&logo=openwrt&mode=dark"><img alt="OpenWrt 23.05 and later" src="https://shieldcn.dev/badge/OpenWrt-%E2%89%A5%2023.05%20%C2%B7%20ipk%20%C2%B7%20apk.svg?variant=secondary&font=geist&logo=openwrt&mode=light"></picture></a>
+<a href="https://tailwindcss.com/"><picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/badge/Tailwind%20CSS-4.svg?variant=secondary&font=geist&logo=tailwindcss&mode=dark"><img alt="Tailwind CSS 4" src="https://shieldcn.dev/badge/Tailwind%20CSS-4.svg?variant=secondary&font=geist&logo=tailwindcss&mode=light"></picture></a>
+<a href="https://vite.dev/"><picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/badge/built%20with-Vite.svg?variant=secondary&font=geist&logo=vite&mode=dark"><img alt="Vite" src="https://shieldcn.dev/badge/built%20with-Vite.svg?variant=secondary&font=geist&logo=vite&mode=light"></picture></a>
+
+[**Quick start**](#-quick-start) &nbsp;·&nbsp; [Features](#-features) &nbsp;·&nbsp; [Gallery](#-gallery) &nbsp;·&nbsp; [Settings](#-settings) &nbsp;·&nbsp; [Compatibility](#-compatibility) &nbsp;·&nbsp; [FAQ](#-faq)
+
 </div>
 
+<br>
+
+Outline makes your router's LuCI look and feel like **ChatGPT's settings**: pill
+controls, hairline cards, calm type, **light and dark**, with pages that switch
+**without reloading**. It is a drop-in theme: install it, and every page,
+including the apps you added, follows it.
+
 <p align="center">
-  <img src=".github/preview/hero.png" alt="Outline — light and dark" width="100%">
+  <img src=".github/preview/hero.png" alt="Outline in light and dark" width="100%">
 </p>
 
-## Features
+## 🚀 Quick start
 
-- **Sidebar layout**: ChatGPT-style icon rail plus a panel showing one section at a time, collapsible, with a mobile drawer.
-- **Fast, silky navigation**: On supported browsers, switching pages only updates the content instead of reloading the whole page, so moving between pages feels seamless and loads much faster (see the [router doc](.dev/docs/router.md)). This no-reload page-switching took cues from [luci-theme-footstrap](https://github.com/VizzleTF/luci-theme-footstrap).
-- **Dark / Light mode**: Built-in toggle, preference remembered automatically, flash-free restore on load.
-- **Command palette (⌘K)**: ChatGPT-style search dialog — jump to any page or tab from the sidebar.
-- **ChatGPT-style design**: ChatGPT settings look — pill controls, hairline cards, secondary-ink descriptions, Analytics-style charts and legends.
-- **Modern stack**: Fast to load, smooth to navigate, with carefully chosen typography and icons.
+1. **Install** on the router (over SSH):
 
-## Preview
+   ```sh
+   wget -qO- https://raw.githubusercontent.com/tickcount/luci-theme-outline/master/install.sh | sh
+   ```
+
+2. **Reload LuCI.** The script makes Outline the active theme.
+3. **Make it yours** in <kbd>System</kbd> › <kbd>Outline Theme</kbd>: mode,
+   preset, colours, fonts, logo and app icon.
+
+> [!TIP]
+> Press <kbd>⌘</kbd> <kbd>K</kbd> (or <kbd>Ctrl</kbd> <kbd>K</kbd>) anywhere to
+> jump to any page or tab.
+
+## ✨ Features
 
 <table>
   <tr>
-    <td><img src=".github/preview/mounts.png" alt="Mount Points"></td>
-    <td><img src=".github/preview/login.png" alt="Login"></td>
+    <td width="50%" valign="top">
+      <h3>🧭 Navbar or sidebar</h3>
+      <p>Floating pills across the top, or a ChatGPT-style icon rail with one section at a time. On phones, a drawer under glass pills that blur as the page scrolls.</p>
+    </td>
+    <td width="50%" valign="top">
+      <h3>⚡ No full reloads</h3>
+      <p>Moving between LuCI pages swaps only the content, so it feels instant. Browsers without the Navigation API keep classic page loads.</p>
+    </td>
   </tr>
   <tr>
-    <td><img src=".github/preview/analytics.png" alt="Realtime charts"></td>
-    <td><img src=".github/preview/palette.png" alt="Command palette"></td>
+    <td valign="top">
+      <h3>🌗 Light, dark and presets</h3>
+      <p>System, light or dark, remembered without a flash. Presets from ChatGPT and the Codex collection (Catppuccin, Dracula, Nord, Tokyo Night, …), or your own colours.</p>
+    </td>
+    <td valign="top">
+      <h3>⌘ Command palette</h3>
+      <p>A ChatGPT-style search: type a few letters to jump to any page or tab from the menu.</p>
+    </td>
   </tr>
   <tr>
-    <td><img src=".github/preview/interfaces.png" alt="Interfaces"></td>
-    <td><img src=".github/preview/rules.png" alt="Firewall rules"></td>
+    <td valign="top">
+      <h3>🎨 ChatGPT's look</h3>
+      <p>Pill controls, hairline cards, secondary-ink descriptions, and Analytics-style charts and legends on the realtime graphs.</p>
+    </td>
+    <td valign="top">
+      <h3>🧩 Apps fit in</h3>
+      <p>Per-page fixes for third-party apps such as Podkop and its forks; apps built for Bootstrap's colours get Outline's; unknown sections get a letter icon.</p>
+    </td>
   </tr>
   <tr>
-    <td><img src=".github/preview/wireless.png" alt="Wireless"></td>
-    <td><img src=".github/preview/load.png" alt="Load chart"></td>
+    <td valign="top">
+      <h3>🏷️ Your branding</h3>
+      <p>The Outline logo, OpenWrt's, or your own, and one app icon from which every favicon and home-screen size is made.</p>
+    </td>
+    <td valign="top">
+      <h3>📦 Updates from LuCI</h3>
+      <p>Check for updates, update, switch LuCI to or away from Outline, or uninstall, all from the theme's own settings.</p>
+    </td>
+  </tr>
+</table>
+
+## 📸 Gallery
+
+<table>
+  <tr>
+    <td width="50%" valign="top"><img src=".github/preview/mounts.png" alt="Mount Points"><p align="center"><sub><b>Settings pages</b>: cards with hairline rows and pill buttons</sub></p></td>
+    <td width="50%" valign="top"><img src=".github/preview/login.png" alt="Login"><p align="center"><sub><b>Login</b></sub></p></td>
+  </tr>
+  <tr>
+    <td valign="top"><img src=".github/preview/analytics.png" alt="Realtime charts"><p align="center"><sub><b>Realtime graphs</b> in the Analytics style</sub></p></td>
+    <td valign="top"><img src=".github/preview/palette.png" alt="Command palette"><p align="center"><sub><b>Command palette</b>: <kbd>⌘</kbd> <kbd>K</kbd></sub></p></td>
+  </tr>
+  <tr>
+    <td valign="top"><img src=".github/preview/interfaces.png" alt="Interfaces"><p align="center"><sub><b>Interfaces</b></sub></p></td>
+    <td valign="top"><img src=".github/preview/rules.png" alt="Firewall rules"><p align="center"><sub><b>Firewall rules</b></sub></p></td>
+  </tr>
+  <tr>
+    <td valign="top"><img src=".github/preview/wireless.png" alt="Wireless"><p align="center"><sub><b>Wireless</b></sub></p></td>
+    <td valign="top"><img src=".github/preview/load.png" alt="Load chart"><p align="center"><sub><b>Load</b></sub></p></td>
   </tr>
 </table>
 
 <p align="center">
-  <img src=".github/preview/mobile.png" alt="Mobile" width="100%">
+  <img src=".github/preview/mobile.png" alt="Outline on phones" width="100%">
+  <br>
+  <sub><b>On phones</b>: the menu in a drawer, the controls in floating glass pills.</sub>
 </p>
 
-## Compatibility
+## 🔧 Settings
 
-- **OpenWrt**: Requires OpenWrt 23.05.0 or later (ucode templates + LuCI JavaScript APIs).
-- **Browsers**: Built with **TailwindCSS v4**. Compatible with the following modern browsers:
-  - **Chrome/Edge 111+** _(released March 2023)_
-  - **Safari 16.4+** _(released March 2023)_
-  - **Firefox 128+** _(released July 2024)_
-  - _Optional enhancement, not a requirement:_ same-document navigation (no full page reload between view pages) uses the [Navigation API](https://developer.mozilla.org/en-US/docs/Web/API/Navigation_API) where available — Chrome/Edge 105+, Safari 26.2+, Firefox 147+. Browsers without it keep classic full-page navigation automatically, with no loss of function.
+<kbd>System</kbd> › <kbd>Outline Theme</kbd>, after ChatGPT and Codex's
+<i>Settings › Appearance</i>:
 
-## Installation
+| Tab            | What it holds                                                                                                                                                                                                                                                                                                                                                                             |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Appearance** | Mode (System, Light, Dark); navigation (navbar or sidebar); a preset (Outline, ChatGPT and the Codex collection: Absolutely, Ayu, Catppuccin, Dracula, Everforest, GitHub, Gruvbox, Linear, Nord, Rose Pine, Solarized, Tokyo Night, Vercel, …); accent, background and foreground colours; fonts and UI, content and code sizes; contrast; reduce motion; separate light and dark themes |
+| **Branding**   | The logo (Outline, OpenWrt's, or an upload) and one app icon for every favicon and home-screen size                                                                                                                                                                                                                                                                                       |
+| **Package**    | Check for updates, update, switch LuCI to or away from Outline, uninstall                                                                                                                                                                                                                                                                                                                 |
 
-Run this on the router itself (e.g. over an SSH session):
+Changes preview on the settings page only and are kept with LuCI's own
+<kbd>Save</kbd> or <kbd>Save & Apply</kbd>. Themes copy and import as
+`outline-theme-v1:` strings, and Codex `codex-theme-v1:` strings import too.
+How it works: [.dev/docs/settings.md](.dev/docs/settings.md).
+
+## 🧪 Compatibility
+
+|                   | Supported                                                                                            |
+| ----------------- | ---------------------------------------------------------------------------------------------------- |
+| **OpenWrt**       | 23.05.0 or later (ucode templates and LuCI's JavaScript APIs); `.ipk` up to 24.10, `.apk` from 25.12 |
+| **Chrome / Edge** | 111+ (March 2023)                                                                                    |
+| **Safari**        | 16.4+ (March 2023)                                                                                   |
+| **Firefox**       | 128+ (July 2024)                                                                                     |
+
+> [!NOTE]
+> Switching pages without a reload uses the
+> [Navigation API](https://developer.mozilla.org/en-US/docs/Web/API/Navigation_API)
+> where there is one (Chrome and Edge 105+, Safari 26.2+, Firefox 147+). Other
+> browsers keep classic page loads, with nothing missing.
+
+## 📥 Install
 
 ```sh
 wget -qO- https://raw.githubusercontent.com/tickcount/luci-theme-outline/master/install.sh | sh
 ```
 
-The script picks the `.ipk` (opkg, OpenWrt ≤ 24.10) or `.apk` (apk, 25.12+) from the latest release, verifies its checksum, installs it and makes Outline the active LuCI theme. Run it again to update. To remove the theme, pass an option after `sh -s --`:
+The script picks the `.ipk` (opkg, OpenWrt 24.10 and earlier) or the `.apk`
+(apk, 25.12 and later) from the latest release, checks it against its checksum,
+installs it and makes Outline the active LuCI theme. Run it again to update.
+
+<details>
+<summary><b>Options and removal</b></summary>
+
+<br>
+
+Pass options after `sh -s --`:
 
 ```sh
 wget -qO- https://raw.githubusercontent.com/tickcount/luci-theme-outline/master/install.sh | sh -s -- --uninstall
 ```
 
 | Option          | Effect                                                       |
-| :-------------- | :----------------------------------------------------------- |
-| `--no-activate` | install without switching LuCI to Outline                    |
-| `--uninstall`   | remove the theme; its settings stay in `/etc/config/outline` |
-| `--purge`       | remove the theme, its settings and uploaded brand images     |
+| --------------- | ------------------------------------------------------------ |
+| `--no-activate` | Install without switching LuCI to Outline                    |
+| `--uninstall`   | Remove the theme; its settings stay in `/etc/config/outline` |
+| `--purge`       | Remove the theme, its settings and uploaded brand images     |
 
-After that, updates, switching the theme on or off and removal are in LuCI under **System › Outline Theme › Package**.
+Updates, switching the theme on or off and removal are also in LuCI, under
+<kbd>System</kbd> › <kbd>Outline Theme</kbd> › <kbd>Package</kbd>.
 
-## Settings
+</details>
 
-**System › Outline Theme** — the theme's own settings, after ChatGPT/Codex _Settings › Appearance_:
+<details>
+<summary><b>Build from source</b></summary>
 
-- **Appearance** — Mode (System / Light / Dark), a theme preset (Outline, ChatGPT and the Codex collection: Absolutely, Ayu, Catppuccin, Dracula, Everforest, GitHub, Gruvbox, Linear, Nord, Rose Pine, Solarized, Tokyo Night, Vercel, …), accent, background and foreground colours with a colour picker, fonts, UI / content / code font sizes, contrast, reduce motion, and separate light and dark themes. Themes copy and import as `outline-theme-v1:` strings; Codex `codex-theme-v1:` strings import too.
-- **Branding** — the logo (Outline, OpenWrt's, or an upload) and one app icon from which every favicon and home-screen size is generated.
-- **Package** — check for updates, update, switch LuCI to or away from Outline, uninstall.
+<br>
 
-Changes preview on the settings page only and are stored with LuCI's own **Save** / **Save & Apply**. How it works: [.dev/docs/settings.md](.dev/docs/settings.md).
+`htdocs/` is not in git: the theme's CSS and JS are built from `.dev/` with
+[pnpm](https://pnpm.io) (Node 22+) first, then the OpenWrt SDK packs them.
 
-## Build from source
-
-`htdocs/` is not in git: the theme's CSS and JS are built from `.dev/` with [pnpm](https://pnpm.io) (Node 22+) first, then the OpenWrt SDK packs them.
-
-### With Docker (as the release does)
+**With Docker**, as the release does:
 
 ```sh
 git clone https://github.com/tickcount/luci-theme-outline.git
@@ -100,11 +199,11 @@ cd luci-theme-outline
 .dev/scripts/build-packages.sh        # or: ipk | apk
 ```
 
-It builds `htdocs/`, then the `.ipk` (OpenWrt 24.10 SDK) and the `.apk` (25.12 SDK) in Docker, and writes them with `sha256sums.txt` to `dist/`.
+It builds `htdocs/`, then the `.ipk` (OpenWrt 24.10 SDK) and the `.apk` (25.12
+SDK) in Docker, and writes them with `sha256sums.txt` to `dist/`.
 
-### In your own source tree or SDK
-
-From an OpenWrt source tree or [SDK](https://openwrt.org/docs/guide-developer/toolchain/using_the_sdk) with the feeds installed (24.10 and earlier build `.ipk`, 25.12+ `.apk`):
+**In your own source tree or SDK**, with the feeds installed (24.10 and earlier
+build `.ipk`, 25.12 and later `.apk`):
 
 ```sh
 git clone https://github.com/tickcount/luci-theme-outline.git package/luci-theme-outline
@@ -114,19 +213,63 @@ make menuconfig    # LuCI → Themes → luci-theme-outline
 make package/luci-theme-outline/compile V=s
 ```
 
-The package lands in `bin/packages/<arch>/base/`; copy it to the router and install it with opkg or apk.
+The package lands in `bin/packages/<arch>/base/`; copy it to the router and
+install it with opkg or apk.
 
-## License & Acknowledgments
+</details>
 
-[Apache 2.0](LICENSE). Thanks to:
+## ❓ FAQ
 
-- [luci-theme-shadcn](https://github.com/eamonxg/luci-theme-shadcn) — the theme Outline is forked from
-- [shadcn/ui](https://github.com/shadcn-ui/ui) — the original design language
-- [Lucide](https://github.com/lucide-icons/lucide) — icons
-- [Twemoji](https://github.com/twitter/twemoji) — country flags on systems without them (CC-BY 4.0, via [country-flag-emoji-polyfill](https://github.com/talkjs/country-flag-emoji-polyfill))
-- [Linear](https://linear.app) — color system inspiration
+<details>
+<summary><b>How do I go back to the default theme?</b></summary>
+
+<br>
+
+<kbd>System</kbd> › <kbd>Outline Theme</kbd> › <kbd>Package</kbd> switches
+LuCI away from Outline, or run the installer with `--uninstall`. Your Outline
+settings stay, so switching back later restores them.
+
+</details>
+
+<details>
+<summary><b>Will my apps' pages look broken?</b></summary>
+
+<br>
+
+Outline styles LuCI's own building blocks, which most apps use, and carries
+fixes for the pages that do their own thing (Podkop and its forks among them).
+Apps written for Bootstrap's colour variables get Outline's colours instead.
+
+</details>
+
+<details>
+<summary><b>My browser is older. Will it work?</b></summary>
+
+<br>
+
+It needs the browsers in [Compatibility](#-compatibility). Instant page
+switching is a bonus where the browser supports it; everywhere else pages load
+as usual.
+
+</details>
+
+## 🙏 Acknowledgments
+
+Thanks to:
+
+- [luci-theme-shadcn](https://github.com/eamonxg/luci-theme-shadcn), the theme Outline is forked from
+- [shadcn/ui](https://github.com/shadcn-ui/ui), the original design language
+- [Lucide](https://github.com/lucide-icons/lucide), icons
+- [Twemoji](https://github.com/twitter/twemoji), country flags on systems without them (CC-BY 4.0, via [country-flag-emoji-polyfill](https://github.com/talkjs/country-flag-emoji-polyfill))
+- [Linear](https://linear.app), colour system inspiration
 - [Vite](https://vite.dev/) and [Tailwind CSS](https://tailwindcss.com/)
-- [luci-theme-bootstrap](https://github.com/openwrt/luci/tree/master/themes/luci-theme-bootstrap) — template structure and LuCI integration patterns
-- [luci-theme-material](https://github.com/openwrt/luci/tree/master/themes/luci-theme-material) — sidebar menu rendering approach
-- [luci-theme-footstrap](https://github.com/VizzleTF/luci-theme-footstrap) — a LuCI theme with its own client-side router. The same-document navigation borrows some of its ideas and implements them on the Navigation API instead — see the [router doc](.dev/docs/router.md)
+- [luci-theme-bootstrap](https://github.com/openwrt/luci/tree/master/themes/luci-theme-bootstrap), template structure and LuCI integration patterns
+- [luci-theme-material](https://github.com/openwrt/luci/tree/master/themes/luci-theme-material), the sidebar menu rendering approach
+- [luci-theme-footstrap](https://github.com/VizzleTF/luci-theme-footstrap), a LuCI theme with its own client-side router; Outline's page switching borrows some of its ideas and builds them on the Navigation API (see the [router doc](.dev/docs/router.md))
 - [Claude Code](https://claude.ai/code)
+
+---
+
+<div align="center">
+<sub>Made for OpenWrt · <a href="LICENSE">Apache 2.0</a> · <a href="#readme">Back to top ↑</a></sub>
+</div>
