@@ -66,8 +66,8 @@ elif [ -x /bin/opkg ]; then PM=opkg
 else PM=
 fi
 
-fetch() { # url file
-	uclient-fetch -q -T 20 -O "$2" "$1" >> "$LOG" 2>&1 && [ -s "$2" ]
+fetch() { # url file [accept]
+	uclient-fetch -q -T 20 ${3:+--header="Accept: $3"} -O "$2" "$1" >> "$LOG" 2>&1 && [ -s "$2" ]
 }
 
 repo() {
@@ -125,6 +125,25 @@ resolve() {
 	[ -f "$m.manifest" ] && REL_SHA256="$(jsonfilter -i "$m.manifest" -e "@.files[@.name='$file'].sha256" 2>/dev/null)"
 	log "  $file ($REL_VERSION)"
 	return 0
+}
+
+# The package's URL in GitHub's API into REL_API_URL (empty when the API does
+# not answer). github.com sends every answer, its redirects to release files
+# too, with a Content-Security-Policy header that can outgrow uclient-fetch's
+# 4 KB line buffer, and it stalls there; the API's headers are short. Also
+# GitHub's own sha256 when the manifest gave none.
+asset_api() {
+	local m="$RUN/resolve.api" file="${REL_URL##*/}" url
+	REL_API_URL=''
+	[ "$(jsonfilter -i "$m" -e '@.tag_name' 2>/dev/null)" = "$REL_TAG" ] ||
+		fetch "https://api.github.com/repos/$REL_REPO/releases/tags/$REL_TAG" "$m" || return 0
+	url="$(jsonfilter -i "$m" -e "@.assets[@.name='$file'].url" 2>/dev/null)"
+	case "$url" in
+		"https://api.github.com/repos/$REL_REPO/releases/assets/"*)
+			case "${url##*/}" in '' | *[!0-9]*) ;; *) REL_API_URL="$url" ;; esac ;;
+	esac
+	[ -n "$REL_SHA256" ] || REL_SHA256="$(jsonfilter -i "$m" -e "@.assets[@.name='$file'].digest" 2>/dev/null |
+		sed -n 's/^sha256:\([0-9a-f]\{64\}\)$/\1/p')"
 }
 
 clear_luci_cache() {
@@ -215,8 +234,15 @@ do_update() {
 	status running download
 	file="$RUN/${REL_URL##*/}"
 	rm -f "$RUN"/*.ipk "$RUN"/*.apk
-	log "downloading $REL_URL"
-	fetch "$REL_URL" "$file" || fail download
+	asset_api
+	if [ -n "$REL_API_URL" ]; then
+		log "downloading $REL_API_URL"
+		fetch "$REL_API_URL" "$file" application/octet-stream || REL_API_URL=''
+	fi
+	if [ -z "$REL_API_URL" ]; then
+		log "downloading $REL_URL"
+		fetch "$REL_URL" "$file" || fail download
+	fi
 	if [ -n "$REL_SHA256" ]; then
 		[ "$(sha256sum "$file" | cut -d' ' -f1)" = "$REL_SHA256" ] || fail checksum
 		log "sha256 ok"

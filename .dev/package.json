@@ -1,6 +1,6 @@
 {
   "name": "luci-theme-outline",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "ChatGPT-style LuCI theme for OpenWrt, built with Vite and TailwindCSS",
   "type": "module",
   "scripts": {

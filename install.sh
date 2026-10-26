@@ -51,10 +51,10 @@ fi
 TMP="$(mktemp -d /tmp/outline-install.XXXXXX)"
 trap 'rm -rf "$TMP"' EXIT INT TERM
 
-fetch() { # url file
-	if command -v uclient-fetch >/dev/null 2>&1; then uclient-fetch -q -T 30 -O "$2" "$1" 2>/dev/null
-	elif command -v wget >/dev/null 2>&1; then wget -q -O "$2" "$1"
-	elif command -v curl >/dev/null 2>&1; then curl -fsSL -o "$2" "$1"
+fetch() { # url file [accept]
+	if command -v uclient-fetch >/dev/null 2>&1; then uclient-fetch -q -T 30 ${3:+--header="Accept: $3"} -O "$2" "$1" 2>/dev/null
+	elif command -v wget >/dev/null 2>&1; then wget -q ${3:+--header="Accept: $3"} -O "$2" "$1"
+	elif command -v curl >/dev/null 2>&1; then curl -fsSL ${3:+-H "Accept: $3"} -o "$2" "$1"
 	else return 1
 	fi
 	[ -s "$2" ]
@@ -166,6 +166,18 @@ esac
 [ -n "$URL" ] || die "release $TAG has no .$([ "$PM" = apk ] && echo apk || echo ipk) package"
 FILE="$TMP/${URL##*/}"
 
+# The package's URL in GitHub's API, tried first: github.com sends every
+# answer, its redirects to release files too, with a Content-Security-Policy
+# header that can outgrow uclient-fetch's 4 KB line buffer, and it stalls
+# there; the API's headers are short. Best effort: github.com stays the
+# fallback. The API also carries GitHub's own sha256 of the file.
+[ "$(json "$TMP/api.json" '@.tag_name' || true)" = "$TAG" ] ||
+	fetch "https://api.github.com/repos/$REPO/releases/tags/$TAG" "$TMP/api.json" || true
+API_URL="$(json "$TMP/api.json" "@.assets[@.name='${URL##*/}'].url" || true)"
+case "$API_URL" in "https://api.github.com/repos/$REPO/releases/assets/"*) ;; *) API_URL='' ;; esac
+case "${API_URL##*/}" in *[!0-9]*) API_URL='' ;; esac
+API_SHA="$(json "$TMP/api.json" "@.assets[@.name='${URL##*/}'].digest" | sed -n 's/^sha256:\([0-9a-f]\{64\}\)$/\1/p')"
+
 # ── Install ──
 
 missing=
@@ -179,13 +191,15 @@ if [ -n "$missing" ]; then
 fi
 
 say "Downloading ${URL##*/} ($TAG)"
-fetch "$URL" "$FILE" || die "download failed: $URL"
-if [ -n "$SHA_FILE" ]; then
-	want="$(json "$SHA_FILE" "@.files[@.name='${URL##*/}'].sha256" || true)"
-	if [ -n "$want" ]; then
-		[ "$(sha256sum "$FILE" | cut -d' ' -f1)" = "$want" ] || die "checksum mismatch -- nothing was installed"
-		say "Checksum verified"
-	fi
+if [ -z "$API_URL" ] || ! fetch "$API_URL" "$FILE" application/octet-stream; then
+	fetch "$URL" "$FILE" || die "download failed: $URL"
+fi
+want=
+[ -z "$SHA_FILE" ] || want="$(json "$SHA_FILE" "@.files[@.name='${URL##*/}'].sha256" || true)"
+[ -n "$want" ] || want="$API_SHA"
+if [ -n "$want" ]; then
+	[ "$(sha256sum "$FILE" | cut -d' ' -f1)" = "$want" ] || die "checksum mismatch -- nothing was installed"
+	say "Checksum verified"
 fi
 
 say "Installing with $PM"
