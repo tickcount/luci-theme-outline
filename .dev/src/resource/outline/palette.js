@@ -422,10 +422,12 @@ function assemble(ap, variants) {
   const ui = intIn(ap.ui_font_size, 11, 16, 14);
   const content = intIn(ap.content_font_size, 12, 24, 14);
   const code = intIn(ap.code_font_size, 8, 24, 13);
+  const width = intIn(ap.content_width, 600, 2560, 920);
 
   if (ui != 14) out.push(`:root{${sizeVars(ui)}}`);
   if (ui != 14 || content != 14) out.push(`#maincontent{${sizeVars(content)}}`);
   if (code != 13) out.push(`:root{--font-size-code:${code}px}`);
+  if (width != 920) out.push(`:root{--content-width:${width}px}`);
 
   for (const v of ["light", "dark"]) {
     const t = variants[v] || {};

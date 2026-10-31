@@ -11,7 +11,7 @@ under `admin/system/outline`.
 | `.dev/src/resource/view/outline/branding.js`                      | Branding page: logo, app icon, uploads                             |
 | `.dev/src/resource/view/outline/package.js`                       | Package page: release check, update, uninstall, purge              |
 | `.dev/src/resource/outline/palette.js`                            | 4 inputs → token overrides → stylesheet (`tokens()`, `assemble()`) |
-| `.dev/src/resource/outline/presets.js`                            | Outline, ChatGPT and the Codex presets; named accents; font lists  |
+| `.dev/src/resource/outline/presets.js`                            | Vercel, ChatGPT and the Codex presets; named accents; font lists   |
 | `.dev/src/resource/outline/share.js`                              | `outline-theme-v1:` / `codex-theme-v1:` share strings              |
 | `.dev/src/resource/outline/icons.js`                              | App icon → favicon / ICO / 180 / 192 / 512 in the browser          |
 | `.dev/src/resource/outline/ui.js`                                 | Codex-style widgets and their CSS (`ot-*`)                         |
@@ -31,7 +31,7 @@ would squeeze the CSS inside `ui.js`'s template literal (`.ot *` → `.ot*`).
 ```
 /etc/config/outline
   appearance  mode, reduced_motion, ui/content/code_font_size,
-              navigation (navbar | sidebar; unset = navbar)
+              navigation (navbar | sidebar; unset = navbar), content_width (600–2560 px; default 920)
   light|dark  preset, accent_name, accent, surface, ink, contrast,
               font_ui, font_ui_weight, font_content, font_code,
               list token 'name=#rrggbb[aa]'      ← derived by palette.tokens()
@@ -45,7 +45,7 @@ line-for-line ucode copy of `palette.assemble()` and emits it in
 plus `html[data-default-theme]`, `html[data-reduced-motion]`, the theme-color
 metas, the brand URLs, `#sidebar[data-logo]` and the PWA manifest (written to
 `/www/luci-static/outline-brand/site.webmanifest` whenever it is out of date).
-A stock configuration produces an empty sheet. `settings-palette.test.js` holds
+An unset or legacy Outline preset uses the Vercel token defaults embedded in the template. `settings-palette.test.js` holds
 the ucode constants to the JS ones; the assembly itself can only run on a
 device -- after a change, compare the rendered `#outline-appearance` text with
 `palette.stylesheet()` for the same state.

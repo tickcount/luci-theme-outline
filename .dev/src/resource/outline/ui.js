@@ -92,7 +92,7 @@ const CSS = `
 .ot-slider input{-webkit-appearance:none;appearance:none;flex:1;height:2px;min-height:0;margin:0;padding:0;border:0;border-radius:9999px;background:var(--ot-line);color:var(--ot-text);cursor:pointer;box-shadow:none}
 .ot-slider input::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:9999px;background:currentColor;border:0;box-shadow:0 1px 2px rgba(0,0,0,.2)}
 .ot-slider input::-moz-range-thumb{width:20px;height:20px;border-radius:9999px;background:currentColor;border:0;box-shadow:0 1px 2px rgba(0,0,0,.2)}
-.ot-slider output{width:36px;text-align:right;font-size:var(--text-sm,14px);font-variant-numeric:tabular-nums}
+.ot-slider output{min-width:36px;white-space:nowrap;text-align:right;font-size:var(--text-sm,14px);font-variant-numeric:tabular-nums}
 .ot-modes{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;width:272px}
 .ot-modes.two{grid-template-columns:repeat(2,1fr);width:176px}
 .ot-mode{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer}
@@ -865,22 +865,33 @@ function sizeField(value, min, max, onCommit, label) {
 }
 
 function slider(opts) {
-  const out = E("output", {}, String(opts.value));
+  const outputValue = (value) => `${value}${opts.unit || ""}`;
+  const out = E("output", {}, outputValue(opts.value));
   const input = E("input", {
     type: "range",
     min: opts.min,
     max: opts.max,
-    step: "1",
+    step: opts.step || "1",
     value: opts.value,
     "aria-label": opts.label,
   });
+  // Keep a previously saved off-step value until the user moves the slider.
+  if (opts.step && (opts.value - opts.min) % opts.step) {
+    input.step = "any";
+    input.value = opts.value;
+    const snap = () => {
+      input.step = String(opts.step);
+    };
+    input.addEventListener("pointerdown", snap, { once: true });
+    input.addEventListener("keydown", snap, { once: true });
+  }
   const tint = (a, s) => {
     input.style.background = `linear-gradient(90deg, color-mix(in srgb, ${a} 35%, ${s}) 0%, ${a} 32%, ${a} 100%)`;
     input.style.height = "2px";
   };
   if (opts.accent) tint(opts.accent, opts.surface || "#ffffff");
   input.addEventListener("input", () => {
-    out.textContent = input.value;
+    out.textContent = outputValue(input.value);
     opts.onInput && opts.onInput(+input.value);
   });
   input.addEventListener("change", () => opts.onCommit(+input.value));

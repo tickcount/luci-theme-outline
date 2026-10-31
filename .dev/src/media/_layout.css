@@ -458,7 +458,7 @@ html:not([data-darkmode="true"]) #theme-toggle-btn .theme-icon-dark {
   @apply @container flex-1 [scrollbar-gutter:stable] overflow-y-auto px-5 pt-8 pb-16 wrap-break-word max-md:px-4 max-md:pt-6;
 
   > * {
-    @apply mx-auto w-full max-w-[920px];
+    @apply mx-auto w-full max-w-(--content-width,920px);
   }
 
   /* Page title: LuCI views open with <h2 name="content"> — straight in
@@ -642,11 +642,11 @@ html:not([data-darkmode="true"]) #theme-toggle-btn .theme-icon-dark {
 }
 
 html[data-nav="navbar"] {
-  /* The side pills line up with the content column (920px, centred; its
+  /* The side pills line up with the content column (centred; its
      20px padding on narrower windows) -- unless the row needs more room:
      --nav-reserve (sidebar-outline.js) is half the section pill plus the
      wider side group, and the edge gives way to it, down to 12px. */
-  @apply md:bg-background md:[--nav-edge:max(12px,min(max(20px,calc(50%_-_460px)),calc(50%_-_var(--nav-reserve,0px))))];
+  @apply md:bg-background md:[--nav-edge:max(12px,min(max(20px,calc(50%_-_var(--content-width,920px)_/_2)),calc(50%_-_var(--nav-reserve,0px))))];
 
   #sidebar {
     @apply md:pointer-events-none md:fixed md:inset-0 md:z-30 md:block md:h-auto md:w-auto md:overflow-visible md:bg-transparent;
@@ -844,6 +844,91 @@ html[data-nav="navbar"] {
     #main-wrapper::after,
     .content-card::before {
       @apply opacity-100;
+    }
+  }
+}
+
+/* The sidebar layout uses the same floating bar on phones. */
+@media (width < 48rem) {
+  html[data-nav="sidebar"] {
+    .topbar-brand,
+    .topbar-hamburger,
+    .topbar-indicators span[data-indicator],
+    #theme-toggle-btn {
+      @apply bg-elevated-a60 border-foreground-a5 pointer-events-auto border shadow-sm backdrop-blur-xl;
+    }
+
+    /* Over the scroll blur (z-20), under the phone drawer's overlay (z-30). */
+    .card-header {
+      @apply pointer-events-none fixed inset-x-3 top-3 z-[25] h-10 gap-2 bg-transparent p-0;
+    }
+
+    /* Phones: the left group dissolves so its pieces order with the right
+       one -- brand, then indicators and theme, the burger last. */
+    .card-header-left {
+      @apply contents;
+    }
+
+    .topbar-breadcrumb {
+      @apply hidden;
+    }
+
+    .topbar-brand {
+      @apply flex;
+    }
+
+    .card-header-right {
+      @apply ml-auto;
+    }
+
+    .topbar-hamburger {
+      @apply order-1 size-10 rounded-full;
+    }
+
+    .card-header-right,
+    .topbar-indicators {
+      @apply gap-2;
+    }
+
+    .topbar-indicators span[data-indicator],
+    #theme-toggle-btn {
+      @apply size-10;
+    }
+
+    #maincontent {
+      @apply pt-20;
+    }
+
+    /* Once the page has scrolled (html[data-scrolled], sidebar-outline.js) a
+       progressive blur eases in behind the pills: three stacked backdrop
+       layers (2 / 6 / 12px), each masked a little shorter, so the blur is
+       strongest at the very top and thins out over 120px -- a gradient, not a
+       band -- with the page colour fading in over the top of it. Text passing
+       under the pills never collides with their labels. */
+    #main-wrapper::before,
+    #main-wrapper::after,
+    .content-card::before {
+      @apply pointer-events-none fixed inset-x-0 top-0 z-20 h-30 opacity-0 content-[''] [transition:opacity_.5s_cubic-bezier(.4,0,.2,1)];
+    }
+
+    #main-wrapper::before {
+      @apply [mask-image:linear-gradient(#000_45%,transparent)] backdrop-blur-[2px];
+    }
+
+    .content-card::before {
+      @apply [mask-image:linear-gradient(#000_25%,transparent_75%)] backdrop-blur-[6px];
+    }
+
+    #main-wrapper::after {
+      @apply bg-[linear-gradient(var(--background),transparent)] [mask-image:linear-gradient(#000_10%,transparent_55%)] backdrop-blur-[12px];
+    }
+
+    &[data-scrolled] {
+      #main-wrapper::before,
+      #main-wrapper::after,
+      .content-card::before {
+        @apply opacity-100;
+      }
     }
   }
 }

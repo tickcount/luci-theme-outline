@@ -28,12 +28,12 @@ test("the Outline preset is the stock palette", () => {
     assert.ok(P.isDefaultColors(v, R.OUTLINE[v]));
 });
 
-test("Theme menu: Outline and ChatGPT on top, the rest sorted and variant-filtered", () => {
+test("Theme menu: Vercel and ChatGPT on top, the rest sorted and variant-filtered", () => {
   const dark = R.forVariant("dark"),
     light = R.forVariant("light");
   assert.deepEqual(
     dark.top.map((t) => t.id),
-    ["outline", "chatgpt"],
+    ["vercel", "chatgpt"],
   );
   assert.ok(!dark.themes.some((t) => t.id == "chatgpt"));
   const labels = dark.themes.map((t) => t.label);
@@ -62,7 +62,8 @@ test("applying a preset keeps fields it does not name", () => {
   assert.equal(next.preset, "nord");
   assert.equal(next.accent_name, "custom");
   assert.equal(R.apply(cur, "vercel", "dark").contrast, 50);
-  assert.equal(R.apply(cur, "outline", "dark").accent_name, "default");
+  assert.equal(R.byId("outline"), null);
+  assert.ok(!R.forVariant("dark").themes.some((t) => t.id == "vercel"));
 });
 
 test("share strings round-trip and enforce the variant", () => {
@@ -115,4 +116,18 @@ test("Codex share strings import", () => {
     S.decode(codex.replace('"vercel"', '"unknown"'), "dark").theme.preset,
     "custom",
   );
+});
+
+test("template default tokens match the Vercel preset", async () => {
+  const { readFileSync } = await import("node:fs");
+  const { root } = await import("./settings-load.js");
+  const header = readFileSync(
+    `${root}/ucode/template/themes/outline/header.ut`,
+    "utf8",
+  );
+  const match = header.match(/const default_tokens = (.*);/);
+  assert.ok(match);
+  const defaults = JSON.parse(match[1]);
+  for (const variant of ["light", "dark"])
+    assert.deepEqual(defaults[variant], P.tokens(variant, R.VERCEL[variant]));
 });

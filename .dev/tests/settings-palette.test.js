@@ -243,3 +243,15 @@ test("header.ut assembles with the same constants as palette.js", async () => {
   assert.equal(steps(header), steps(palette));
   assert.equal(steps(palette), "xs12,sm14,base16,lg18,xl20,2xl24");
 });
+
+test("content width emits a bounded override and keeps the default implicit", () => {
+  const variants = { light: {}, dark: {} };
+  assert.equal(P.assemble({ content_width: 920 }, variants), "");
+  assert.equal(
+    P.assemble({ content_width: 1400 }, variants),
+    ":root{--content-width:1400px}",
+  );
+  for (const width of [599, 2561, "1400px", "1;color:red"]) {
+    assert.equal(P.assemble({ content_width: width }, variants), "");
+  }
+});

@@ -4,8 +4,8 @@
 /*
  * Theme presets, named accents and the curated font lists.
  *
- * The Theme menu's top level holds "Outline" (the theme's stock look) and
- * "ChatGPT" (ChatGPT's own theme, top-level in Codex too); the rest of the
+ * The Theme menu's top level holds "Vercel" (the default) and "ChatGPT";
+ * the rest of the
  * Codex collection follows in one list, by name. A preset sets only the
  * fields it names -- picking one keeps the current contrast and fonts unless
  * the preset carries its own, exactly like Codex.
@@ -315,7 +315,8 @@ const FONT_WEIGHTS = [
   { value: "600", label: _("Semibold") },
 ];
 
-const TOP = [OUTLINE, CHATGPT];
+const VERCEL = THEMES.find((t) => t.id == "vercel");
+const TOP = [VERCEL, CHATGPT];
 
 function byId(id) {
   return TOP.concat(THEMES).find((t) => t.id == id) || null;
@@ -327,7 +328,7 @@ function forVariant(variant) {
   const collator = new Intl.Collator(undefined, { sensitivity: "base" });
   return {
     top: TOP.filter((t) => t[variant]),
-    themes: THEMES.filter((t) => t[variant]).sort((a, b) =>
+    themes: THEMES.filter((t) => t[variant] && t.id != VERCEL.id).sort((a, b) =>
       collator.compare(a.label, b.label),
     ),
   };
@@ -341,7 +342,7 @@ function apply(current, presetId, variant) {
   if (!seed) return current;
   return Object.assign({}, current, seed, {
     preset: preset.id,
-    accent_name: preset.id == OUTLINE.id ? "default" : "custom",
+    accent_name: "custom",
   });
 }
 
@@ -364,6 +365,7 @@ function labelFor(list, value) {
 
 return baseclass.extend({
   OUTLINE: OUTLINE,
+  VERCEL: VERCEL,
   CHATGPT: CHATGPT,
   TOP: TOP,
   THEMES: THEMES,

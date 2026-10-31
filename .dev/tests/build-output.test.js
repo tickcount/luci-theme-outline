@@ -72,7 +72,8 @@ test("production assets stay within raw-transfer budgets", () => {
   // the country-flags face, ~1 KB.
   // 215K: the navbar's floating bar on phones (brand pill, indicators,
   // theme, burger; the scroll blur at every width), ~1.5 KB.
-  assert.ok(main <= 215_000, `main.css ${main} B exceeds 215 KB`);
+  // 220K: the floating mobile bar also applies to the sidebar layout.
+  assert.ok(main <= 220_000, `main.css ${main} B exceeds 220 KB`);
   assert.ok(login <= 11_000, `login.css ${login} B exceeds 11 KB`);
   // 17.5K: palette tabs (third-level nodes, redirect-parent folding, legacy
   // recents mapping, parent-aware scoring, per-segment path words) added
@@ -104,8 +105,9 @@ test("production assets stay within raw-transfer budgets", () => {
     // it loads only on a page with a flag, on a system without flags.
     // 288K: follows main.css's 215K ceiling (phone navbar) and the
     // drawer's breakpoint reset.
-    main + menu + router + sidebar + font <= 288_000,
-    "admin assets exceed 288 KB",
+    // 293K: includes the shared mobile bar for the sidebar layout.
+    main + menu + router + sidebar + font <= 293_000,
+    "admin assets exceed 293 KB",
   );
   assert.ok(login + font + logo <= 60_000, "login assets exceed 60 KB");
 });

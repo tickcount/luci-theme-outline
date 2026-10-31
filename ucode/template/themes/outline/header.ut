@@ -75,15 +75,22 @@
 	const ui_px = int_in(appearance.ui_font_size, 11, 16, 14);
 	const content_px = int_in(appearance.content_font_size, 12, 24, 14);
 	const code_px = int_in(appearance.code_font_size, 8, 24, 13);
+	const content_width = int_in(appearance.content_width, 600, 2560, 920);
 	if (ui_px != 14) push(css_out, ':root{' + size_vars(ui_px) + '}');
 	if (ui_px != 14 || content_px != 14) push(css_out, '#maincontent{' + size_vars(content_px) + '}');
 	if (code_px != 13) push(css_out, `:root{--font-size-code:${code_px}px}`);
+	if (content_width != 920) push(css_out, `:root{--content-width:${content_width}px}`);
 
+	// Generated from palette.tokens() for the Vercel preset; kept in sync by settings-palette.test.js.
+	const default_tokens = {"light":["shell=#fdfdfd","bg=#ffffff","surface=#ffffff","elevated=#ffffff","elevated-secondary=#ffffff","dialog-bg=#ffffff","input-bg=#ffffff","select-bg=#f7f7f7","callout=#f7f7f7","text=#171717","text-tertiary=#989898","nav-text=#171717d9","border=#17171718","hover=#1717170c","soft=#1717170c","soft-hover=#17171719","brand=#171717","accent=#006aff","on-accent=#ffffff","link=#0053c7","ring=#006aff","success-surface=#eef9f3","warning-surface=#fdf5f0","danger-surface=#fdf0f0","info-surface=#e6f0ff","info-surface-fg=#004099","tooltip-bg=#171717","tooltip-fg=#ffffff","scrim=#00000040","switch-off=#17171719","primary-foreground=#ffffff","primary-hover=#393939","panel-bg=#ffffff","muted-foreground=#676767","input=#17171725","terminal-bg=#fdfdfd","success=#00a240","success-solid=#008635","success-surface-fg=#008635","warning=#e25507","warning-surface-fg=#b9480d","danger-solid=#e02e2a","danger-soft=#e02e2a1a","danger-surface-fg=#ba2623","destructive=#e02e2a","chart-blue=#006aff","chart-green=#00a240","chart-red=#e02e2a","chart-orange=#e25507","chart-yellow=#ffc300","background=#ffffff","foreground=#171717","primary=#171717","panel-border=#17171718","muted=#1717170c","info=#0053c7","sidebar-bg=#fdfdfd","sidebar-accent=#1717170c","sidebar-active-bg=#1717170c","terminal-hover=#1717170c","accent-a10=#006aff1a","accent-a30=#006aff4d","destructive-a15=#e02e2a26","destructive-a20=#e02e2a33","foreground-a5=#1717170d","foreground-a10=#1717171a","foreground-a30=#1717174d","info-a15=#0053c726","info-a40=#0053c766","elevated-a60=#ffffff99","elevated-a90=#ffffffe6"],"dark":["shell=#000000","bg=#000000","surface=#000000","elevated=#101010","elevated-secondary=#171717","dialog-bg=#0e0e0e","input-bg=#101010f5","select-bg=#ededed06","callout=#171717f5","text=#ededed","text-tertiary=#ededed71","nav-text=#edededd9","border=#ededed11","hover=#ededed10","soft=#ededed0c","soft-hover=#ededed18","brand=#ededed","accent=#006efe","on-accent=#ffffff","link=#539dfe","ring=#539dfeb6","success-surface=#08180e","warning-surface=#28150b","danger-surface=#281010","info-surface=#001c40","info-surface-fg=#338bfe","tooltip-bg=#101010","tooltip-fg=#ededed","scrim=#00000099","switch-off=#ededed18","primary-foreground=#101010","primary-hover=#dcdcdc","panel-bg=#080808","muted-foreground=#edededa0","input=#ededed21","terminal-bg=#0b0b0b","success=#40c977","success-solid=#008635","success-surface-fg=#04b84c","warning=#ff8549","warning-surface-fg=#ff8549","danger-solid=#e02e2a","danger-soft=#ff67641a","danger-surface-fg=#fa423e","destructive=#ff6764","chart-blue=#006efe","chart-green=#40c977","chart-red=#ff6764","chart-orange=#fb6a22","chart-yellow=#ffd240","background=#000000","foreground=#ededed","primary=#ededed","panel-border=#ededed11","muted=#ededed0c","info=#539dfe","sidebar-bg=#000000","sidebar-accent=#ededed10","sidebar-active-bg=#ededed10","terminal-hover=#ededed10","accent-a10=#006efe1a","accent-a30=#006efe4d","destructive-a15=#ff676426","destructive-a20=#ff676433","foreground-a5=#ededed0d","foreground-a10=#ededed1a","foreground-a30=#ededed4d","info-a15=#539dfe26","info-a40=#539dfe66","elevated-a60=#10101099","elevated-a90=#101010e6"]};
 	const theme_color = { light: '#f9f9f9', dark: '#000000' };
 	for (let v in [ 'light', 'dark' ]) {
-		const t = ocfg.get_all('outline', v) ?? {};
+		let t = ocfg.get_all('outline', v) ?? {};
+		const use_default = t.preset == 'outline' || (!t.preset && !t.token && !t.accent && !t.surface && !t.ink);
+		if (t.preset == 'outline') t = {};
+		const tokens = use_default ? default_tokens[v] : t.token;
 		let decl = [];
-		for (let e in (type(t.token) == 'array' ? t.token : (t.token ? [ t.token ] : []))) {
+		for (let e in (type(tokens) == 'array' ? tokens : (tokens ? [ tokens ] : []))) {
 			const m = match(e, TOKEN_RE);
 			if (!m) continue;
 			push(decl, `--${m[1]}:${m[2]}`);

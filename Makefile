@@ -15,8 +15,8 @@ LUCI_EXTRA_DEPENDS:=luci-base (>=0), rpcd-mod-ucode (>=0), ucode-mod-fs (>=0), u
 	uclient-fetch (>=0), jsonfilter (>=0)
 LUCI_PKGARCH:=all
 
-PKG_VERSION:=1.2.1
-PKG_RELEASE:=20261026
+PKG_VERSION:=1.3.0
+PKG_RELEASE:=20261031
 PKG_LICENSE:=Apache-2.0
 
 LUCI_MINIFY_CSS:=

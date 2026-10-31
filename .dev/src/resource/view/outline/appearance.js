@@ -41,6 +41,8 @@ const VARIANT_FIELDS = [
   "font_code",
 ];
 
+const CONTENT_WIDTH = { min: 600, max: 2560, def: 920 };
+
 const SIZES = {
   ui_font_size: { min: 11, max: 16, def: 14 },
   content_font_size: { min: 12, max: 24, def: 14 },
@@ -48,11 +50,12 @@ const SIZES = {
 };
 
 function variantFrom(conf, v) {
-  const d = presets.OUTLINE[v];
+  const d = presets.VERCEL[v];
   conf = conf || {};
+  if (conf.preset == "outline") conf = {};
   const t = {
-    preset: conf.preset || "outline",
-    accent_name: conf.accent_name || "default",
+    preset: conf.preset || "vercel",
+    accent_name: conf.accent_name || "custom",
     accent: conf.accent || d.accent,
     surface: conf.surface || d.surface,
     ink: conf.ink || d.ink,
@@ -86,6 +89,12 @@ function stateFrom(mode) {
       content_font_size: size("content_font_size"),
       code_font_size: size("code_font_size"),
       navigation: ap.navigation == "sidebar" ? "sidebar" : "navbar",
+      content_width:
+        Number.isInteger(Number(ap.content_width)) &&
+        +ap.content_width >= CONTENT_WIDTH.min &&
+        +ap.content_width <= CONTENT_WIDTH.max
+          ? +ap.content_width
+          : CONTENT_WIDTH.def,
     },
     light: variantFrom(uci.get("outline", "light"), "light"),
     dark: variantFrom(uci.get("outline", "dark"), "dark"),
@@ -385,7 +394,7 @@ return view.extend({
     for (const v of ["light", "dark"]) {
       const t = this.state[v];
       if (
-        t.contrast != presets.OUTLINE[v].contrast ||
+        t.contrast != presets.VERCEL[v].contrast ||
         t.font_code ||
         t.font_content ||
         t.font_ui_weight
@@ -406,7 +415,7 @@ return view.extend({
     this.setReducedMotion("system");
     for (const v of ["light", "dark"])
       Object.assign(this.state[v], {
-        contrast: presets.OUTLINE[v].contrast,
+        contrast: presets.VERCEL[v].contrast,
         font_code: "",
         font_content: "",
         font_ui_weight: "",
@@ -439,6 +448,20 @@ return view.extend({
           control: w.navPicker(this.state.appearance.navigation, (n) =>
             this.setNavigation(n),
           ),
+        }),
+        w.row({
+          variant: "nested",
+          label: _("Content width"),
+          description: _("Maximum width of the page content"),
+          control: w.slider({
+            value: this.state.appearance.content_width,
+            min: CONTENT_WIDTH.min,
+            max: CONTENT_WIDTH.max,
+            step: 20,
+            label: _("Content width"),
+            unit: " px",
+            onCommit: (n) => this.setAppearance({ content_width: n }, false),
+          }),
         }),
       ]),
       this.separate
