@@ -187,13 +187,16 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  '@eamonxg/luci-theme-devkit@0.3.1': efb85b1af06555df712b0c716ae029b606286b90cdc4347b8656404810494270
+
 importers:
 
   .:
     devDependencies:
       '@eamonxg/luci-theme-devkit':
         specifier: ^0.3.1
-        version: 0.3.1(terser@5.47.1)(vite@8.0.13(@types/node@25.9.1)(jiti@2.7.0)(terser@5.47.1)(yaml@2.9.0))
+        version: 0.3.1(patch_hash=efb85b1af06555df712b0c716ae029b606286b90cdc4347b8656404810494270)(terser@5.47.1)(vite@8.0.13(@types/node@25.9.1)(jiti@2.7.0)(terser@5.47.1)(yaml@2.9.0))
       '@eamonxg/luci-theme-tokens':
         specifier: ^2.0.0
         version: 2.0.0
@@ -895,7 +898,7 @@ packages:
 
 snapshots:
 
-  '@eamonxg/luci-theme-devkit@0.3.1(terser@5.47.1)(vite@8.0.13(@types/node@25.9.1)(jiti@2.7.0)(terser@5.47.1)(yaml@2.9.0))':
+  '@eamonxg/luci-theme-devkit@0.3.1(patch_hash=efb85b1af06555df712b0c716ae029b606286b90cdc4347b8656404810494270)(terser@5.47.1)(vite@8.0.13(@types/node@25.9.1)(jiti@2.7.0)(terser@5.47.1)(yaml@2.9.0))':
     dependencies:
       terser: 5.47.1
       vite: 8.0.13(@types/node@25.9.1)(jiti@2.7.0)(terser@5.47.1)(yaml@2.9.0)

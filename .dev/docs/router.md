@@ -257,6 +257,30 @@ Anything else falls through untouched: the browser performs the ordinary
 full navigation, i.e. exactly what the theme did before. Modifier-clicks and
 `target=_blank` never reach the event.
 
+### A view's own history (patched)
+
+devkit 0.3.1 also intercepted a view's **own** History API calls:
+`history.replaceState`/`pushState` arrive as same-document `replace`/`push`
+navigations, and the router re-rendered the view on screen — a view that
+kept its tab or filter in the query string reloaded on every change.
+`.dev/patches/@eamonxg__luci-theme-devkit@0.3.1.patch` (pnpm
+`patchedDependencies`) adds `ownsHistory()`, checked first in `onNavigate`:
+
+- a same-document navigation that is not a traversal (pushState,
+  replaceState, a fragment link) is the view's: never intercepted;
+- the router remembers the entries it rendered (`own`, by entry key — a
+  replace keeps the key) and, for every entry a view pushed, the rendered
+  entry it belongs to (`owner`, recorded on `currententrychange`);
+- back/forward to an entry of the view **on screen** is the view's (its
+  `popstate` handler); to an entry of **another** view it renders that view
+  at the entry's URL, which then stays the owner of its pushed entries.
+
+Checked on the device in Brave (2026-11-02, Dawnline Diagnostics ↔
+Settings): replaceState keeps the view; pushState + back keeps it; a link
+away and back renders the first view again; back from another view onto a
+pushed entry renders its view, and one more back stays in it. Drop the
+patch once the devkit ships the same rule (worth offering upstream).
+
 ### Serviceable nodes
 
 Resolved with a port of the dispatcher's own rules, not a paraphrase:

@@ -1,0 +1,83 @@
+diff --git a/runtime/router.js b/runtime/router.js
+index 52960113ea02c09c408a09b92971fe9355ae75a0..8aebb3be6291593c52507e99765545f10dfa5ec8 100644
+--- a/runtime/router.js
++++ b/runtime/router.js
+@@ -166,6 +166,12 @@ return baseclass.extend({
+     this.inflight = Promise.resolve();
+     this.intervals = new Set();
+     this.scrolls = new Map();
++    // Entries the router rendered, the one on screen now, and for entries a
++    // view pushed itself, the rendered entry they belong to.
++    this.own = new Set();
++    this.owner = new Map();
++    this.shown = null;
++    this.pending = false;
+     // Only the sheets the header rendered are known; anything else present
+     // at boot was injected by the page's own modules before the router ran.
+     this.knownSheets = new WeakSet(
+@@ -205,7 +211,16 @@ return baseclass.extend({
+           "aria-atomic": "true",
+         }),
+       );
++      this.show(navigation.currentEntry?.key);
+       navigation.addEventListener("navigate", (ev) => this.onNavigate(ev));
++      // An entry from a navigation left to the view (pushState, a fragment)
++      // belongs to the view on screen; remember it for back/forward.
++      navigation.addEventListener("currententrychange", () => {
++        const key = navigation.currentEntry?.key;
++        if (this.pending && key && !this.own.has(key))
++          this.owner.set(key, this.shown);
++        this.pending = false;
++      });
+       document.addEventListener("pointerover", (ev) => this.onIntent(ev));
+       document.addEventListener("pointerdown", (ev) => this.onIntent(ev));
+       document.addEventListener("focusin", (ev) => this.onIntent(ev));
+@@ -683,6 +698,7 @@ return baseclass.extend({
+       this.bypass = false;
+       return;
+     }
++    if (this.ownsHistory(ev)) return;
+     if (
+       !ev.canIntercept ||
+       ev.hashChange ||
+@@ -705,10 +721,39 @@ return baseclass.extend({
+     ev.intercept({
+       focusReset: "manual",
+       scroll: "after-transition",
+-      handler: () => this.navigate(r, ev),
++      handler: () => {
++        // The handler runs once the destination entry is current. Rendering
++        // a view's pushed entry renders that view: it stays the owner.
++        const key = navigation.currentEntry?.key;
++        this.show(this.owner.get(key) ?? key);
++        return this.navigate(r, ev);
++      },
+     });
+   },
+ 
++  show(key) {
++    if (!key) return;
++    this.own.add(key);
++    this.shown = key;
++  },
++
++  // A view's own History API calls change the address of the view already on
++  // screen, not the page: pushState/replaceState (and fragment links) arrive
++  // as same-document push/replace navigations and must not re-render it.
++  // Back/forward between a rendered entry and the entries its view pushed is
++  // the view's own too (its popstate handler); a traversal to another view's
++  // entry renders that view.
++  ownsHistory(ev) {
++    if (!ev.destination.sameDocument) return false;
++    if (ev.navigationType !== "traverse") {
++      this.pending = true;
++      return true;
++    }
++    const key = ev.destination.key;
++    const view = this.own.has(key) ? key : this.owner.get(key);
++    return view === undefined || view === this.shown;
++  },
++
+   async navigate(r, ev) {
+     const gen = ++this.gen;
+     const previous = this.inflight;

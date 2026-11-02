@@ -82,7 +82,10 @@ test("production assets stay within raw-transfer budgets", () => {
   // filter pills added ~0.7 KB; the admin total below still holds.
   // 19K: monogram icons for sections the icon map doesn't know.
   assert.ok(menu <= 19_000, `menu-outline.js ${menu} B exceeds 19 KB`);
-  assert.ok(router <= 16_000, `router-outline.js ${router} B exceeds 16 KB`);
+  // 16.5K: the devkit patch that leaves a view's own History API calls
+  // (pushState/replaceState) and its back/forward between them to the view,
+  // ~0.65 KB.
+  assert.ok(router <= 16_500, `router-outline.js ${router} B exceeds 16.5 KB`);
   // 7K: independent group folds (persisted) and the rail's logo-to-expand
   // control for the ChatGPT sidebar.
   // 7.5K: the dropdown viewport clamp (an open LuCI list past the screen
