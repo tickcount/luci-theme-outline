@@ -250,8 +250,12 @@ a.sidebar-nav-parent {
   }
 }
 
-.sidebar-sub-list {
-  @apply m-0 flex list-none flex-col p-0;
+/* 2px between rows (here and in the collapsed rail's popover): hover and
+   the current page share one fill, so flush rows would read as a single
+   tall pill when they sit next to each other. */
+.sidebar-sub-list,
+.sidebar-collapsed-popover-list {
+  @apply m-0 flex list-none flex-col gap-0.5 p-0;
 }
 
 .sidebar-sub-item {
@@ -284,10 +288,6 @@ a.sidebar-nav-parent {
 
 .sidebar-collapsed-popover-title {
   @apply text-text-tertiary px-2.5 pt-1.5 pb-1 text-sm leading-[18px] font-medium;
-}
-
-.sidebar-collapsed-popover-list {
-  @apply m-0 list-none p-0;
 }
 
 .sidebar-collapsed-popover-link {
