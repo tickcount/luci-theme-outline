@@ -1,5 +1,3 @@
-<h4 align="right"><strong>English</strong> | <a href="README_zh.md">简体中文</a></h4>
-
 <div align="center">
 
 <img src=".dev/public/outline/images/favicon.svg" alt="Outline" width="88" height="88">
@@ -18,6 +16,8 @@
 <a href="https://vite.dev/"><picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/badge/built%20with-Vite.svg?variant=secondary&font=geist&logo=vite&mode=dark"><img alt="Vite" src="https://shieldcn.dev/badge/built%20with-Vite.svg?variant=secondary&font=geist&logo=vite&mode=light"></picture></a>
 
 [**Quick start**](#-quick-start) &nbsp;·&nbsp; [Features](#-features) &nbsp;·&nbsp; [Gallery](#-gallery) &nbsp;·&nbsp; [Settings](#-settings) &nbsp;·&nbsp; [Compatibility](#-compatibility) &nbsp;·&nbsp; [FAQ](#-faq)
+
+**English** &nbsp;·&nbsp; [Русский](README_ru.md) &nbsp;·&nbsp; [简体中文](README_zh.md)
 
 </div>
 

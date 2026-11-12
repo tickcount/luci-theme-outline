@@ -1,5 +1,3 @@
-<h4 align="right"><a href="README.md">English</a> | <strong>简体中文</strong></h4>
-
 <div align="center">
 
 <img src=".dev/public/outline/images/favicon.svg" alt="Outline" width="88" height="88">
@@ -8,16 +6,18 @@
 
 **一款 ChatGPT 风格的 OpenWrt LuCI 主题。**
 
-<a href="https://github.com/tickcount/luci-theme-outline/releases/latest"><picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/github/release/tickcount/luci-theme-outline.svg?variant=secondary&font=geist&mode=dark"><img alt="Latest release" src="https://shieldcn.dev/github/release/tickcount/luci-theme-outline.svg?variant=secondary&font=geist&mode=light"></picture></a>
+<a href="https://github.com/tickcount/luci-theme-outline/releases/latest"><picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/github/release/tickcount/luci-theme-outline.svg?variant=secondary&font=geist&mode=dark"><img alt="最新版本" src="https://shieldcn.dev/github/release/tickcount/luci-theme-outline.svg?variant=secondary&font=geist&mode=light"></picture></a>
 <a href="https://github.com/tickcount/luci-theme-outline/actions/workflows/ci.yml"><picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/github/ci/tickcount/luci-theme-outline.svg?variant=secondary&font=geist&mode=dark"><img alt="CI" src="https://shieldcn.dev/github/ci/tickcount/luci-theme-outline.svg?variant=secondary&font=geist&mode=light"></picture></a>
-<a href="https://github.com/tickcount/luci-theme-outline/releases"><picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/github/downloads/tickcount/luci-theme-outline.svg?variant=secondary&font=geist&mode=dark"><img alt="Downloads" src="https://shieldcn.dev/github/downloads/tickcount/luci-theme-outline.svg?variant=secondary&font=geist&mode=light"></picture></a>
-<a href="LICENSE"><picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/badge/license-Apache%202.0.svg?variant=secondary&font=geist&logo=lu:Scale&mode=dark"><img alt="License: Apache 2.0" src="https://shieldcn.dev/badge/license-Apache%202.0.svg?variant=secondary&font=geist&logo=lu:Scale&mode=light"></picture></a>
+<a href="https://github.com/tickcount/luci-theme-outline/releases"><picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/github/downloads/tickcount/luci-theme-outline.svg?variant=secondary&font=geist&mode=dark"><img alt="下载量" src="https://shieldcn.dev/github/downloads/tickcount/luci-theme-outline.svg?variant=secondary&font=geist&mode=light"></picture></a>
+<a href="LICENSE"><picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/badge/license-Apache%202.0.svg?variant=secondary&font=geist&logo=lu:Scale&mode=dark"><img alt="许可证：Apache 2.0" src="https://shieldcn.dev/badge/license-Apache%202.0.svg?variant=secondary&font=geist&logo=lu:Scale&mode=light"></picture></a>
 <br>
-<a href="https://openwrt.org/"><picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/badge/OpenWrt-%E2%89%A5%2023.05%20%C2%B7%20ipk%20%C2%B7%20apk.svg?variant=secondary&font=geist&logo=openwrt&mode=dark"><img alt="OpenWrt 23.05 and later" src="https://shieldcn.dev/badge/OpenWrt-%E2%89%A5%2023.05%20%C2%B7%20ipk%20%C2%B7%20apk.svg?variant=secondary&font=geist&logo=openwrt&mode=light"></picture></a>
+<a href="https://openwrt.org/"><picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/badge/OpenWrt-%E2%89%A5%2023.05%20%C2%B7%20ipk%20%C2%B7%20apk.svg?variant=secondary&font=geist&logo=openwrt&mode=dark"><img alt="OpenWrt 23.05 及以上" src="https://shieldcn.dev/badge/OpenWrt-%E2%89%A5%2023.05%20%C2%B7%20ipk%20%C2%B7%20apk.svg?variant=secondary&font=geist&logo=openwrt&mode=light"></picture></a>
 <a href="https://tailwindcss.com/"><picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/badge/Tailwind%20CSS-4.svg?variant=secondary&font=geist&logo=tailwindcss&mode=dark"><img alt="Tailwind CSS 4" src="https://shieldcn.dev/badge/Tailwind%20CSS-4.svg?variant=secondary&font=geist&logo=tailwindcss&mode=light"></picture></a>
 <a href="https://vite.dev/"><picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/badge/built%20with-Vite.svg?variant=secondary&font=geist&logo=vite&mode=dark"><img alt="Vite" src="https://shieldcn.dev/badge/built%20with-Vite.svg?variant=secondary&font=geist&logo=vite&mode=light"></picture></a>
 
 [**快速开始**](#-快速开始) &nbsp;·&nbsp; [特性](#-特性) &nbsp;·&nbsp; [截图](#-截图) &nbsp;·&nbsp; [设置](#-设置) &nbsp;·&nbsp; [兼容性](#-兼容性) &nbsp;·&nbsp; [常见问题](#-常见问题)
+
+[English](README.md) &nbsp;·&nbsp; [Русский](README_ru.md) &nbsp;·&nbsp; **简体中文**
 
 </div>
 
