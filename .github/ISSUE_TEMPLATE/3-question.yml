@@ -1,0 +1,29 @@
+name: Question
+description: How to install the theme, set it up or change how it looks
+type: Question
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The [README](https://github.com/tickcount/luci-theme-outline#readme) covers installing, updating and the theme's own settings. If your question is not answered there, ask here.
+
+  - type: textarea
+    id: question
+    attributes:
+      label: What you want to do
+    validations:
+      required: true
+
+  - type: textarea
+    id: tried
+    attributes:
+      label: What you tried
+
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: The theme (System → Outline Theme → Package) and OpenWrt.
+      placeholder: Outline 1.3.2, OpenWrt 25.12.5
+    validations:
+      required: true

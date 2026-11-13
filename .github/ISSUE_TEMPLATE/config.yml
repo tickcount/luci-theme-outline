@@ -1,2 +1,8 @@
----
-blank_issues_enabled: true
+blank_issues_enabled: false
+contact_links:
+  - name: Security problem
+    url: https://github.com/tickcount/luci-theme-outline/security/advisories/new
+    about: Report a vulnerability privately. Please do not open a public issue for it.
+  - name: Install, update and settings
+    url: https://github.com/tickcount/luci-theme-outline#readme
+    about: How to install and update the theme, and what its own settings do.

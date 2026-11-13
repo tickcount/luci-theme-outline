@@ -1,0 +1,103 @@
+name: Bug report
+description: Something in the Outline theme looks or behaves wrong
+type: Bug
+labels: ["needs triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time. A screenshot and the exact page are what a theme bug needs most.
+
+        Remove passwords, keys and public IP addresses from screenshots and from anything you paste.
+
+  - type: textarea
+    id: what
+    attributes:
+      label: What is wrong
+      description: What you see, and what you expected to see. Drag a screenshot or a short recording into this field.
+    validations:
+      required: true
+
+  - type: input
+    id: page
+    attributes:
+      label: Page
+      description: The address after `/cgi-bin/luci/`, and the app the page belongs to if it is not part of LuCI itself.
+      placeholder: admin/network/firewall/rules · luci-app-firewall
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open …
+        2. Press …
+        3. See …
+
+  - type: input
+    id: theme
+    attributes:
+      label: Theme version
+      description: System → Outline Theme → Package.
+      placeholder: "1.3.2"
+    validations:
+      required: true
+
+  - type: input
+    id: openwrt
+    attributes:
+      label: OpenWrt version
+      description: Status → Overview → Firmware Version.
+      placeholder: 25.12.5
+    validations:
+      required: true
+
+  - type: dropdown
+    id: layout
+    attributes:
+      label: Navigation
+      description: System → Outline Theme → Appearance.
+      options:
+        - Sidebar
+        - Navbar
+        - Both
+    validations:
+      required: true
+
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Appearance
+      options:
+        - Dark
+        - Light
+        - Both
+    validations:
+      required: true
+
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and system
+      description: With versions. Say if it is a phone.
+      placeholder: Safari 26 on iOS 26 · Chrome 141 on Windows 11
+    validations:
+      required: true
+
+  - type: textarea
+    id: console
+    attributes:
+      label: Browser console
+      description: Errors from the browser's console, if there are any (F12 → Console).
+      render: text
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before sending
+      options:
+        - label: The same page looks right in another theme (for example Bootstrap), so the problem is the theme's.
+        - label: I looked through the open issues and did not find this one.
+          required: true

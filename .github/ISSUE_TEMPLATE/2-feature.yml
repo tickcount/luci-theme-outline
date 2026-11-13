@@ -1,0 +1,25 @@
+name: Feature request
+description: Something the theme could do, or a page it could style better
+type: Feature
+labels: ["needs triage"]
+body:
+  - type: textarea
+    id: wish
+    attributes:
+      label: What you would like
+      description: What it should look like or do. A sketch or a screenshot of the page as it is helps.
+    validations:
+      required: true
+
+  - type: textarea
+    id: why
+    attributes:
+      label: What it is for
+      description: Where you ran into it and what you do today.
+
+  - type: input
+    id: page
+    attributes:
+      label: Page or app
+      description: If it is about one page, its address after `/cgi-bin/luci/` and the app it belongs to.
+      placeholder: admin/services/podkop · luci-app-podkop
