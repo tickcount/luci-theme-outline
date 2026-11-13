@@ -41,3 +41,4 @@ Details — output map, load-bearing terser options, dev-server env, Vite plugin
 - Design tokens: `.dev/src/media/_tokens.css` (generated), `.dev/tokens/*.js` (source)
 - Version: `PKG_VERSION` / `PKG_RELEASE` in `Makefile`, `"version"` in `.dev/package.json` (kept equal)
 - Releases: one commit `Outline X.Y.Z` whose `- ` points are the release notes, then tag `vX.Y.Z` → [.dev/docs/build.md#releases](.dev/docs/build.md#releases)
+- Release notes and any list of «what changed»: collected from the code against the last release, key changes only, in English → [.dev/docs/release-notes.md](.dev/docs/release-notes.md)

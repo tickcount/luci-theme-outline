@@ -7,6 +7,7 @@ Guidance for coding agents working in this repository.
 Deep dives live in `.dev/docs/`:
 
 - [build.md](.dev/docs/build.md) — build output map, terser options, dev-server env, Vite plugins, CI, releases
+- [release-notes.md](.dev/docs/release-notes.md) — how a release's points and any list of changes are collected
 - [css.md](.dev/docs/css.md) — `@apply` conventions, import order, tokens, dark mode, icons
 - [patches.md](.dev/docs/patches.md) — on-demand per-page patches (CSS + JS)
 - [router.md](.dev/docs/router.md) — the client-side router; read before touching navigation

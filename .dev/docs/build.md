@@ -55,6 +55,7 @@ Local package build, the same way: `.dev/scripts/build-packages.sh [ipk|apk|all]
 
 - `Makefile` (`PKG_VERSION` / `PKG_RELEASE`) is the OpenWrt package manifest, built via `feeds/luci/luci.mk`. Dependencies are runtime-only (`LUCI_EXTRA_DEPENDS`, `(>=0)` each): the SDK has nothing to build for them.
 - A release is one commit on `master` titled `Outline X.Y.Z`; its body is `- ` points (wrapped lines indented), which become the GitHub release notes (`.dev/scripts/release-notes.sh`: the points of every commit since the previous tag, other commits by their title). There is no changelog folder. Work from a branch is squashed into that one commit.
+- The points are collected as [release-notes.md](release-notes.md) says: from the difference with the last release, not from the commit messages alone.
 - Bump `PKG_VERSION` in `Makefile` and `"version"` in `.dev/package.json` (CI checks they agree; the tag must be `v` + that version).
 - No `Co-Authored-By` or other agent attribution in commits.
 - Push `master`, then an annotated tag `vX.Y.Z` ("Outline X.Y.Z"); "Build packages" publishes the release.
