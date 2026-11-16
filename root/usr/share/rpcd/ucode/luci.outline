@@ -162,11 +162,11 @@ function ext_of(name) {
 
 /* An SVG is served from LuCI's own origin, so opening it directly must not
    be able to run script or pull anything in. Anything active is refused
-   rather than stripped. */
+   rather than stripped. ucode uses POSIX regexes: use [[:space:]], not \s. */
 function svg_safe(data) {
-	if (!match(data, /<svg[\s>]/i))
+	if (!match(data, /<svg[[:space:]>]/i))
 		return false;
-	return !match(data, /<script|<foreignObject|<iframe|<embed|<object|<!ENTITY|javascript:|[\s"'\/]on[a-z]+\s*=|(xlink:)?href\s*=\s*["']\s*(https?:|\/\/|data:text)/i);
+	return !match(data, /<script|<foreignObject|<iframe|<embed|<object|<!ENTITY|javascript:|[[:space:]"'\/]on[a-z]+[[:space:]]*=|(xlink:)?href[[:space:]]*=[[:space:]]*["'][[:space:]]*(https?:|\/\/|data:text)/i);
 }
 
 /* The file must be what its extension says. */
