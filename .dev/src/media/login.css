@@ -13,6 +13,7 @@
 @import "./fonts.css";
 @import "./_tokens.css";
 @import "./_shared.css";
+@import "./_backdrop.css";
 
 @custom-variant dark (&:where([data-darkmode=true], [data-darkmode=true] *));
 
@@ -24,7 +25,8 @@
   }
 
   body,
-  p {
+  p,
+  h1 {
     @apply m-0;
   }
 
@@ -50,135 +52,497 @@ body {
   @apply text-sm leading-5;
 }
 
-/* ── Entry animation ── */
+/* ── Hand-off to LuCI ────────────────────────────────────────────────
+   A successful login navigates to LuCI for real; both documents opt in to
+   a cross-document view transition (main.css too). Only the card is
+   captured — the page itself is not (no root snapshot, as on LuCI pages)
+   — so the card leaves the way a view does, over LuCI already loaded. */
+@view-transition {
+  navigation: auto;
+}
 
-@keyframes fadeSlideIn {
-  to {
-    opacity: 1;
-    transform: translateY(0px);
+:root {
+  @apply [view-transition-name:none];
+}
+
+/* Arriving from the site root (/www/outline.html), whose card is this
+   one's "Redirecting" state: the two are the same picture, so the swap is
+   instant and the card's own state change (sysauth.ut) carries the motion.
+   Leaving for LuCI the rules are LuCI's: the card fades out over it. */
+::view-transition-group(auth),
+::view-transition-new(auth) {
+  @apply animate-none;
+}
+
+::view-transition-old(auth) {
+  @apply animate-none opacity-0;
+}
+
+/* ── The column ──────────────────────────────────────────────────────
+   Always centred on the visible viewport (sysauth.ut feeds --vv-* from
+   visualViewport, so an on-screen keyboard never covers it). Its size is
+   the measured content (--w, --h), followed at once: the content's own
+   height animations (setState, setError) are what re-centre it. */
+
+.auth {
+  @apply text-foreground fixed left-1/2 [width:var(--w,min(380px,calc(100vw-32px)))] [translate:-50%_-50%] [view-transition-name:auth];
+  @apply [top:calc(var(--vv-top,0px)+var(--vv-h,100dvh)/2)] [height:var(--h,auto)];
+  @apply [transition:width_.6s_cubic-bezier(.19,1,.22,1),top_.25s_ease-out];
+
+  /* With JS the card opens itself (sysauth.ut): hidden until then, so the
+     server-rendered form never flashes before the loading state. */
+  .auth-js &:not(.is-on) {
+    @apply opacity-0;
   }
 }
 
-.animate-element {
-  opacity: 0;
-  transform: translateY(8px);
-  animation: fadeSlideIn 0.35s cubic-bezier(0.19, 1, 0.22, 1) forwards;
-}
+/* Measured content: its size is never constrained by the card, and it
+   sits on the card's centre line, so a width change opens both sides at
+   once instead of revealing the content from the left. */
+.auth-measure {
+  @apply w-max;
 
-.animate-delay-100 {
-  animation-delay: 0.05s;
-}
-.animate-delay-200 {
-  animation-delay: 0.1s;
-}
-.animate-delay-300 {
-  animation-delay: 0.15s;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .animate-element {
-    opacity: 1;
-    transform: none;
-    animation: none;
+  /* Taken out of flow only when the script feeds --w/--h; without JS the
+     card simply wraps it. */
+  .auth-js & {
+    @apply absolute [top:0] left-1/2 [translate:-50%_0];
   }
 }
 
-/* ── Layout ──────────────────────────────────────────────────────────
-   The admin pages' language on a single centred column: page canvas, a
-   brand block, two stacked pill fields, the solid ink pill as the action.
-   No imagery. */
+/* popLayout: the leaving view is out of the flow while it fades, centred
+   like the rest, and carries no selection highlight with it. */
+.auth-view.is-leaving {
+  @apply pointer-events-none absolute [top:0] left-1/2 [translate:-50%_0];
 
-.login-layout {
-  @apply relative flex min-h-dvh flex-col items-center justify-center px-5 pt-16 pb-24;
+  ::selection {
+    @apply bg-transparent;
+  }
 }
 
-.login-column {
-  @apply w-full max-w-[360px];
+/* ── States ── */
+
+/* Logo and text block the same height (44 = 24 title + 2 + 18 line), so
+   the mark sits square against the two lines instead of floating. */
+.auth-view {
+  @apply w-[min(380px,calc(100vw-32px))];
 }
 
-/* ── Brand block ── */
+/* After Family's sign-in (app.family.co), measured off the live page: a
+   380px column, no card -- the logo, 23px to an 18/19 semibold title, 8px
+   to a 16/19 line at half ink, 24px to a 48px field (14px corners, the
+   soft fill, a 2px accent ring inset on focus), 24px to a 14/22.7 footnote
+   at half ink. */
+.auth-head {
+  @apply flex flex-col items-center text-center;
 
-.login-brand {
-  @apply mb-8 flex flex-col items-center gap-1 text-center;
-}
-
-/* The mark is a full-colour badge with its own shape: shown as is, no
-   frame around it. */
-.login-logo {
-  @apply mb-4 flex size-12 shrink-0 items-center justify-center;
-
-  /* Same app-icon rounding as the sidebar logo. */
   img {
-    @apply size-12 rounded-[22%] object-contain;
+    @apply size-10 shrink-0 rounded-[22%] object-contain;
   }
 }
 
-.login-hostname {
-  /* The admin page title: 24/28.8 medium. */
-  @apply text-foreground m-0 text-2xl leading-[1.2] font-medium;
+/* The logo's state badge: an arrow on the accent while redirecting, a tick
+   on green once signed in. It pops in on the spring (its overshoot is the
+   pop) and shrinks away when the state moves on. */
+.auth-mark {
+  @apply relative mb-[23px] block size-10;
 }
 
-/* ── Error: the danger callout ── */
+.auth-badge {
+  @apply absolute -right-1.5 -bottom-1.5 scale-50 rounded-full p-[3px] text-white opacity-0 [box-shadow:0_0_0_2.5px_var(--background)];
+  @apply [transition:opacity_.3s_ease-out,scale_.5s_var(--auth-spring)];
 
-.login-error {
-  @apply bg-danger-surface text-danger-surface-fg mb-3 rounded-2xl px-4 py-3 text-sm leading-5;
-}
+  &[data-status="redirecting"] {
+    @apply bg-accent;
+  }
 
-/* ── Fields: label over a pill input, stacked, no container ── */
-
-.login-card {
-  @apply flex flex-col gap-4;
-}
-
-.login-field {
-  @apply flex flex-col gap-2;
-}
-
-.login-label {
-  @apply text-foreground text-sm leading-5 font-medium;
-}
-
-.login-input {
-  @apply border-input bg-input-bg text-foreground h-11 w-full rounded-full border px-4 text-sm leading-5 outline-none [transition:border-color_.15s];
-
-  /* outline, not ring: same 2px blue, a fraction of ring's shadow stack. */
-  &:focus {
-    @apply outline-ring border-transparent outline-2 outline-solid;
+  &[data-status="connected"] {
+    @apply bg-success-solid;
   }
 }
 
-.login-password {
+[data-state="redirecting"] .auth-badge[data-status="redirecting"],
+[data-state="connected"] .auth-badge[data-status="connected"] {
+  @apply scale-100;
+}
+
+.auth-title {
+  @apply text-[18px] leading-[19px] font-semibold tracking-[-0.13px];
+}
+
+.auth-sub {
+  @apply text-muted-foreground mt-2 text-base leading-[19px] tracking-[-0.13px];
+}
+
+/* The page's states (form[data-state], sysauth.ut setState): form,
+   redirecting (from the site root), connected (signed in, LuCI loading).
+   The line under the title says which, cross-faded on the spring; outside
+   the form the body leaves the flow where it stands and fades (never
+   clipped) while its box closes; back to the form the body stands in place
+   at once and fades in while its box opens -- never clipped either. */
+.auth-sub {
+  @apply grid place-items-center;
+
+  > span {
+    @apply opacity-0 [grid-area:1/1] [transition:opacity_.5s_var(--auth-spring)];
+  }
+
+  .auth-shimmer {
+    @apply mt-0 text-base leading-[19px] font-normal;
+  }
+}
+
+[data-state="form"] [data-status="form"],
+[data-state="redirecting"] [data-status="redirecting"],
+[data-state="connected"] [data-status="connected"] {
+  @apply opacity-100;
+}
+
+.auth-body-inner {
+  @apply pt-6 [transition:opacity_.5s_var(--auth-spring)];
+
+  :is([data-state="redirecting"], [data-state="connected"]) & {
+    @apply pointer-events-none absolute inset-x-0 opacity-0;
+  }
+}
+
+.auth-input,
+.auth-icon-btn,
+.auth-submit {
+  transition:
+    opacity 0.5s var(--auth-spring),
+    background-color 0.2s ease-out,
+    color 0.2s ease-out,
+    scale 0.2s ease-out;
+}
+
+.auth-shimmer {
+  @apply mt-0.5 bg-clip-text text-sm leading-5 font-medium text-transparent;
+  @apply [background-image:linear-gradient(90deg,var(--text-tertiary)_35%,var(--foreground)_50%,var(--text-tertiary)_65%)] [background-size:250%_100%];
+  @apply animate-[auth-shimmer_1.8s_linear_infinite];
+}
+
+@keyframes auth-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0 0;
+  }
+}
+
+/* ── Password field ── */
+
+.auth-field {
+  @apply bg-soft flex h-12 cursor-text items-center gap-1 rounded-[14px] pr-1.5 pl-[17px] outline-2 -outline-offset-2 outline-transparent outline-solid [transition:outline-color_.1s_ease,background-color_.2s_ease-out];
+
+  &:focus-within {
+    @apply outline-accent;
+  }
+
+  &.is-invalid {
+    @apply outline-danger;
+  }
+}
+
+/* 16px: iOS does not zoom the page into a focused field. One line tall:
+   Safari paints a selection the full height of the input, so a full-height
+   input would stretch it into a slab (the field takes the clicks, sysauth.ut). */
+.auth-input {
+  @apply h-6 min-w-0 flex-1 text-base leading-6 font-medium outline-none;
+
+  &::selection {
+    @apply bg-accent-a30;
+  }
+
+  &::placeholder {
+    @apply text-text-tertiary font-normal;
+  }
+
+  /* Filled in by the browser (:autofill) or 1Password (it marks the field
+     data-com-onepassword-filled and paints it blue from its own stylesheet,
+     which outranks the page's !important). Either fill is out of reach, so
+     it is clipped to the text: it only lies under the dots, which are solid
+     ink over it -- and never shows. */
+  &:is(:autofill, :-webkit-autofill, [data-com-onepassword-filled]) {
+    @apply [background-clip:text] [caret-color:var(--foreground)] [-webkit-background-clip:text] [-webkit-text-fill-color:var(--foreground)];
+  }
+
+  &[readonly] {
+    @apply text-muted-foreground;
+  }
+}
+
+.auth-icon-btn,
+.auth-submit {
+  @apply grid shrink-0 cursor-pointer place-items-center active:[scale:.95];
+  @apply focus-visible:outline-ring focus-visible:outline-2 focus-visible:outline-offset-2;
+}
+
+.auth-icon-btn {
+  @apply text-muted-foreground hover:bg-hover hover:text-foreground size-9 rounded-xl;
+}
+
+/* Muted until there is something to send, then the accent. */
+.auth-submit {
+  @apply bg-soft-hover text-text-tertiary h-9 w-11 rounded-xl;
+
+  .has-value & {
+    @apply bg-accent text-on-accent;
+  }
+}
+
+/* Icons cross-fade in place. */
+.auth-swap {
+  @apply grid place-items-center;
+
+  > * {
+    @apply [grid-area:1/1] [transition:opacity_.2s_ease-out,scale_.2s_ease-out];
+
+    &:not(.is-on) {
+      @apply [scale:.5] opacity-0;
+    }
+  }
+}
+
+.auth-spin {
+  @apply animate-spin [animation-duration:.7s];
+}
+
+/* Family's error, sampled frame by frame: arriving, its wrapper opens
+   (height 0 -> content, expo-out, 400 ms, clipping) while the message
+   fades in (ease-out, 400 ms); leaving, the message is taken out of the
+   flow where it stands and only fades (ease-out, 400 ms, never clipped)
+   while the wrapper closes under it the same way. The heights are driven
+   by sysauth.ut (setError); 14/19 in the danger red, 12px off the field;
+   the field's ring turns red in 100 ms. */
+.auth-error-wrap {
   @apply relative;
 
-  .login-input {
-    @apply pr-11;
+  > div {
+    @apply pointer-events-none absolute inset-x-0 top-0 opacity-0 [transition:opacity_.4s_ease-out];
+  }
+
+  &.is-shown {
+    @apply overflow-hidden;
+
+    > div {
+      @apply pointer-events-auto static opacity-100;
+    }
   }
 }
 
-.login-pw-toggle {
-  @apply hover:bg-foreground-a5 absolute top-1/2 right-1.5 flex size-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border-0 bg-transparent;
+.auth-error {
+  @apply text-danger pt-3 text-center text-sm leading-[19px];
+}
 
-  img {
-    @apply size-4 opacity-60 [transition:opacity_.15s];
+/* The footnote: one line for the empty field, another once something is
+   typed, cross-faded in place. */
+.auth-note {
+  @apply text-muted-foreground mt-6 grid place-items-center text-center text-sm leading-[1.62] text-balance;
+
+  > span {
+    @apply [grid-area:1/1] [transition:opacity_.5s_var(--auth-spring)];
   }
 
-  &:hover img {
+  .auth-note-value,
+  .has-value & .auth-note-empty {
+    @apply opacity-0;
+  }
+
+  .has-value & .auth-note-value {
     @apply opacity-100;
   }
 }
 
-/* ── Action: the solid ink pill ── */
+/* Kept for password managers, which pair the password with a username. */
+.auth-user {
+  @apply pointer-events-none absolute size-px opacity-0;
+}
 
-.login-submit {
-  @apply bg-primary text-primary-foreground hover:bg-primary-hover focus-visible:outline-ring mt-4 h-11 w-full cursor-pointer rounded-full border-0 text-sm font-medium [transition:background-color_.15s] focus-visible:outline-2 focus-visible:outline-offset-2;
+/* Family's motion, sampled off the live page: every change is a fade on
+   a spring (500 ms, a slight overshoot that settles); arriving, each group
+   fades in and rises 10px on a damped one (400 ms, no overshoot), a beat
+   apart -- the CSS linear() curves below are those springs' own samples: the logo, then the title block (50 ms), the
+   field and footnote (100 ms). The footer's links are simply there. */
+:root {
+  --auth-enter: cubic-bezier(0.25, 1, 0.5, 1);
+  --auth-spring: cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+@supports (transition-timing-function: linear(0, 1)) {
+  :root {
+    --auth-enter: linear(
+      0,
+      0.017,
+      0.06,
+      0.12,
+      0.19,
+      0.264,
+      0.34,
+      0.413,
+      0.483,
+      0.548,
+      0.608,
+      0.663,
+      0.711,
+      0.754,
+      0.792,
+      0.825,
+      0.854,
+      0.878,
+      0.899,
+      0.917,
+      0.932,
+      0.945,
+      0.956,
+      0.965,
+      0.972,
+      0.978,
+      0.983,
+      0.987,
+      0.99,
+      0.992,
+      0.994,
+      0.996,
+      0.997,
+      0.998,
+      0.999,
+      0.999,
+      1,
+      1,
+      1,
+      1,
+      1
+    );
+    --auth-spring: linear(
+      0,
+      0.032,
+      0.099,
+      0.191,
+      0.299,
+      0.413,
+      0.528,
+      0.639,
+      0.741,
+      0.831,
+      0.909,
+      0.974,
+      1.026,
+      1.065,
+      1.093,
+      1.11,
+      1.119,
+      1.12,
+      1.116,
+      1.108,
+      1.097,
+      1.084,
+      1.07,
+      1.056,
+      1.043,
+      1.031,
+      1.02,
+      1.01,
+      1.003,
+      0.997,
+      0.992,
+      0.989,
+      0.987,
+      0.986,
+      0.986,
+      0.986,
+      0.987,
+      0.988,
+      0.99,
+      0.992,
+      0.993,
+      0.995,
+      0.996,
+      0.998,
+      0.999,
+      1,
+      1,
+      1.001,
+      1.001,
+      1.002,
+      1
+    );
+  }
+}
+
+@keyframes auth-rise {
+  from {
+    opacity: 0;
+    translate: 0 10px;
+  }
+}
+
+/* --auth-skip (sysauth.ut, from the site root): how long ago the root's
+   page started this same entrance, so it carries on instead of replaying. */
+.auth.is-on :is(.auth-head > *, .auth-field, .auth-note) {
+  animation: auth-rise 0.4s var(--auth-enter) both;
+  animation-delay: var(--auth-skip, 0ms);
+}
+
+.auth.is-on .auth-head > :not(.auth-mark) {
+  animation-delay: calc(50ms + var(--auth-skip, 0ms));
+}
+
+.auth.is-on :is(.auth-field, .auth-note) {
+  animation-delay: calc(100ms + var(--auth-skip, 0ms));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth,
+  .auth-swap > * {
+    @apply [transition:none];
+  }
+
+  .auth.is-on :is(.auth-head > *, .auth-field, .auth-note) {
+    animation: none;
+  }
+
+  .auth-note > span {
+    @apply [transition:none];
+  }
+
+  .auth-shimmer {
+    @apply text-muted-foreground animate-none bg-none;
+  }
+
+  @view-transition {
+    navigation: none;
+  }
 }
 
 /* ── Footer ── */
 
+/* Family's footer, measured: the links 32px off the window's foot, 13px
+   at half ink, 10px apart around 3px dots at 10% ink. */
 .login-footer {
-  @apply text-text-tertiary absolute right-0 bottom-5 left-0 px-6 text-center text-xs leading-4;
+  @apply fixed inset-x-0 bottom-[calc(32px+env(safe-area-inset-bottom))] flex justify-center px-4;
 
   a {
-    @apply text-text-tertiary hover:text-foreground underline underline-offset-2 [transition:color_.15s];
+    @apply no-underline;
+  }
+
+  @media (height < 480px) {
+    @apply hidden;
+  }
+}
+
+.login-footer-links {
+  @apply m-0 flex list-none items-center gap-2.5 p-0;
+
+  li {
+    @apply flex items-center gap-2.5;
+
+    &:not(:last-child)::after {
+      @apply bg-foreground block size-[3px] rounded-full opacity-10 content-[''];
+    }
+  }
+
+  a {
+    @apply text-muted-foreground hover:text-foreground text-[13px] [transition:color_.15s];
   }
 }

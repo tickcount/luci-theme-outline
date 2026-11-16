@@ -59,7 +59,10 @@ export const DERIVATIONS = {
 export const ALPHAS = {
   accent: [10, 30],
   destructive: [15, 20, 30],
-  foreground: [5, 10, 30],
+  // 2-14: the navigation's tones (hover, current, hairlines, the sidebar's
+  // and the inset ground's tints, laid over the page colour); 78 / 95: its
+  // page and section labels.
+  foreground: [2, 3, 4, 5, 7, 8, 9, 10, 14, 30, 78, 95],
   success: [15],
   warning: [15],
   info: [15, 40],

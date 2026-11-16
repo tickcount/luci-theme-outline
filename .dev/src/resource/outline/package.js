@@ -1,14 +1,16 @@
 "use strict";
-"require view";
+"require baseclass";
 "require rpc";
 "require ui";
 "require outline.ui as w";
 
 /*
- * System › Outline Theme › Package -- check for and install updates of this
- * theme, switch LuCI to or away from it, and remove it (settings kept, or
- * everything) without SSH. First installation is install.sh in the
- * repository: a package cannot install itself.
+ * The theme's package, under its Appearance settings in System › System ›
+ * Language and Style (patches/admin-system-system.js): check for and
+ * install updates of this theme, have them installed on a schedule, and
+ * remove it with everything it stored, without SSH. Switching LuCI to or
+ * away from it is that tab's own Design field. First installation is
+ * install.sh in the repository: a package cannot install itself.
  *
  * Long work runs as a detached job on the router (/usr/libexec/outline/job):
  * rpcd starts it and returns at once, the page polls its status file. That
@@ -26,11 +28,6 @@ const callJobStart = rpc.declare({
 const callJobStatus = rpc.declare({
   object: "luci.outline",
   method: "job_status",
-});
-const callActivate = rpc.declare({
-  object: "luci.outline",
-  method: "activate",
-  params: ["enable"],
 });
 const callSetAuto = rpc.declare({
   object: "luci.outline",
@@ -104,7 +101,7 @@ const ERRORS = {
   ),
 };
 
-return view.extend({
+const Page = {
   load() {
     return L.resolveDefault(callState(), null);
   },
@@ -307,60 +304,54 @@ return view.extend({
   paint() {
     const d = this.data;
     const theme = d.theme || {};
-    const sys = d.system || {};
     const upd = d.updates || {};
     const auto = d.auto || { enabled: false, interval: "weekly" };
     const rel = upd.theme || null;
     const busy = !!this.checking;
+    const short = (v) => String(v || "").replace(/-r\d+$/, "");
     const newer =
       rel &&
       !rel.error &&
       theme.version &&
       cmpVersion(rel.version, theme.version) > 0;
 
-    const latest = busy
-      ? [E("span", { class: "ot-desc" }, _("Checking…"))]
-      : !rel
-        ? [E("span", { class: "ot-desc" }, _("Not checked yet"))]
-        : rel.error
-          ? [E("span", { class: "ot-desc" }, _("No release found"))]
-          : [
-              E("span", { class: "ot-mono" }, rel.version),
-              newer
-                ? E("span", { class: "ot-badge new" }, _("Update available"))
-                : E("span", { class: "ot-badge ok" }, _("Up to date")),
-            ];
+    /* One line: where the theme stands, and when it was last asked. */
+    const status = busy
+      ? _("Checking…")
+      : newer
+        ? _("Version %s is available").format(short(rel.version))
+        : !rel
+          ? _("Not checked yet")
+          : rel.error
+            ? _("No release found")
+            : _("Up to date");
+    const checked =
+      upd.checked && !busy
+        ? _("checked %s").format(
+            new Date(upd.checked * 1000).toLocaleString(undefined, {
+              dateStyle: "medium",
+              timeStyle: "short",
+            }),
+          )
+        : null;
 
-    const themeCard = w.card([
+    const card = w.card([
       w.row({
-        variant: "nested",
-        label: _("Outline theme"),
-        control: [
-          E(
-            "span",
-            { class: "ot-mono" },
-            theme.version || _("installed by hand"),
-          ),
-          E(
-            "span",
-            { class: "ot-badge" + (theme.active ? " ok" : "") },
-            theme.active ? _("Active") : _("Inactive"),
-          ),
-        ],
-      }),
-      w.row({
-        label: _("Latest release"),
-        description: rel && rel.repo ? "github.com/" + rel.repo : null,
-        control: latest,
-      }),
-      w.row({
-        label: _("Use Outline as the LuCI theme"),
-        description: _("Same as System › System › Language and Style."),
-        control: w.toggle(
-          !!theme.active,
-          (on) => callActivate(on).then(() => location.reload()),
-          _("Use Outline as the LuCI theme"),
-        ),
+        label: theme.version
+          ? _("Outline %s").format(short(theme.version))
+          : _("Outline"),
+        description: [status, checked].filter(Boolean).join(" · "),
+        control: newer
+          ? w.button(_("Update"), {
+              kind: "primary",
+              disabled: busy,
+              onClick: () => this.start("update"),
+            })
+          : w.button(_("Check for updates"), {
+              icon: "refresh",
+              disabled: busy || !d.system,
+              onClick: () => this.start("check"),
+            }),
       }),
       w.row({
         label: _("Automatic updates"),
@@ -388,40 +379,11 @@ return view.extend({
           })
         : null,
       w.row({
-        label: _("Package"),
-        control: [
-          w.button(
-            newer ? _("Update to %s").format(rel.version) : _("Reinstall"),
-            {
-              kind: newer ? "primary" : null,
-              disabled: busy || !rel || !!rel.error,
-              onClick: () => this.start("update"),
-            },
-          ),
-          w.button(_("Uninstall"), {
-            kind: "danger",
-            onClick: () =>
-              this.confirm(
-                _("Uninstall the Outline theme?"),
-                _(
-                  "LuCI switches back to Bootstrap and the theme is removed. Its appearance and branding settings are kept, so installing it again restores them.",
-                ),
-                _("Uninstall"),
-                () => this.start("uninstall"),
-              ),
-          }),
-        ],
-      }),
-    ]);
-
-    const removeCard = w.card([
-      w.row({
-        variant: "tall",
         label: _("Remove Outline completely"),
         description: _(
-          "Uninstalls the theme and deletes /etc/config/outline and the uploaded brand images; LuCI switches back to Bootstrap.",
+          "The theme, its settings and uploaded images; LuCI goes back to Bootstrap",
         ),
-        control: w.button(_("Remove…"), {
+        control: w.button(_("Remove"), {
           kind: "danger",
           onClick: () =>
             this.confirm(
@@ -436,21 +398,7 @@ return view.extend({
       }),
     ]);
 
-    const info = E("p", { class: "ot-desc", style: "margin-top:12px" }, [
-      sys.pkg_manager
-        ? _("Package manager: %s").format(sys.pkg_manager)
-        : _("No package manager found"),
-      sys.release ? " · OpenWrt " + sys.release : "",
-      upd.checked
-        ? " · " +
-          _("Last checked %s").format(
-            new Date(upd.checked * 1000).toLocaleString(),
-          )
-        : "",
-    ]);
-
     this.root.replaceChildren(
-      E("h2", { name: "content", class: "ot-head" }, _("Package")),
       d.system
         ? ""
         : E(
@@ -461,22 +409,20 @@ return view.extend({
             ),
           ),
       E("div", { class: "ot-sections" }, [
-        w.section(
-          _("Theme"),
-          w.button(_("Check for updates"), {
-            icon: "refresh",
-            disabled: busy || !d.system,
-            onClick: () => this.start("check"),
-          }),
-          [themeCard, info],
-        ),
-        w.section(_("Danger zone"), null, [removeCard]),
+        w.section(_("Outline"), null, [card]),
       ]),
     );
   },
+};
 
-  /* Nothing on this page is a setting: no Save / Save & Apply / Reset. */
-  handleSave: null,
-  handleSaveApply: null,
-  handleReset: null,
+return baseclass.extend({
+  load() {
+    return Page.load();
+  },
+
+  /* A page instance: render(data) builds it. Nothing here is a setting --
+     every action runs at once -- so it has no part in the tab's Save. */
+  create() {
+    return Object.create(Page);
+  },
 });

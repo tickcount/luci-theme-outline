@@ -3,16 +3,26 @@
    .modal are ui.js's own nodes, direct children of <body> — never wrapped
    or reparented (modal map Save/Dismiss query that exact path). */
 #modal_overlay {
-  @apply pointer-events-none invisible fixed inset-0 z-50 hidden overflow-auto bg-transparent outline-none;
+  /* Open and close both animate (skiper21's view timing: 270 ms,
+     cubic-bezier(.26,.08,.25,1)). On close display flips to none only
+     at the end (allow-discrete), so the dialog fades out where it stands —
+     which is why the layout lives here and not on the active state. */
+  @apply pointer-events-none fixed inset-0 z-50 hidden place-items-center overflow-auto bg-transparent p-4 outline-none max-md:p-3;
+  @apply [--ease-view:cubic-bezier(.26,.08,.25,1)] [transition:display_.27s_allow-discrete,background-color_.27s_var(--ease-view)];
 
   .modal-overlay-active & {
-    @apply bg-scrim pointer-events-auto visible grid place-items-center p-4 max-md:p-3;
+    @apply bg-scrim pointer-events-auto grid starting:bg-transparent;
+  }
+
+  .modal-overlay-active & > .modal {
+    @apply [scale:1] opacity-100 starting:[scale:.96] starting:opacity-0;
   }
 
   > .modal {
     /* A size container like #maincontent: tables inside stack or grid on
-       the dialog's width (_table.css). */
-    @apply bg-dialog-bg text-foreground @container flex w-full max-w-[680px] flex-col gap-4 rounded-2xl border-0 p-5 break-words whitespace-normal shadow-lg outline-none [transition:opacity_.2s_var(--ease-enter),scale_.2s_var(--ease-enter)] starting:scale-[.98] starting:opacity-0;
+       the dialog's width (_table.css). Closed, it rests where an open
+       starts from. */
+    @apply bg-dialog-bg text-foreground @container flex w-full max-w-[680px] [scale:.96] flex-col gap-4 rounded-2xl border-0 p-5 break-words whitespace-normal opacity-0 shadow-lg outline-none [transition:opacity_.27s_var(--ease-view),scale_.27s_var(--ease-view)];
     @apply dark:shadow-[inset_0_0_0_1px_var(--border),var(--shadow-lg)];
 
     > h4:first-child {

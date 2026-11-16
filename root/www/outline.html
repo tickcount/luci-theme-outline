@@ -1,0 +1,176 @@
+<!doctype html>
+<!--
+ luci-theme-outline: the site root (/), in place of luci-base's index.html.
+ uhttpd serves it first (uhttpd.main.index_page, set by uci-defaults); with
+ the theme removed it is gone and index.html answers again.
+
+ It draws the theme's card ("Redirecting") before it moves on, so the
+ browser has a frame to hold while LuCI loads instead of a blank one. With
+ a session the card fades out over LuCI; without one it hands over to the
+ login card — both as a cross-document view transition (login.css and
+ main.css opt in). The theme's own pages remember what this static page
+ cannot know: host name, logo, light/dark, palette, the login.css URL and
+ the backdrop (Appearance › Backdrop) as they rendered it.
+-->
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="robots" content="noindex" />
+    <title></title>
+    <style>
+      html {
+        background: #fcfcfc;
+      }
+      @media (prefers-color-scheme: dark) {
+        html {
+          background: #000;
+        }
+      }
+    </style>
+    <script>
+      var outline = (function () {
+        var get = function (k) {
+          try {
+            return localStorage.getItem("outline." + k);
+          } catch (e) {
+            return null;
+          }
+        };
+        var html = document.documentElement;
+        var dark =
+          get("dark") ||
+          String(matchMedia("(prefers-color-scheme: dark)").matches);
+        html.setAttribute("data-darkmode", dark);
+        if (get("bg")) html.style.background = get("bg");
+        /* Parser-inserted, so render-blocking: the card never paints unstyled. */
+        document.write(
+          '<link rel="stylesheet" href="' +
+            (get("css") || "/luci-static/outline/login.css").replace(/"/g, "") +
+            '">',
+        );
+        var palette = get("appearance");
+        if (palette)
+          document.write("<style>" + palette.replace(/<\//g, "") + "</style>");
+        var backdrop = get("backdrop");
+        if (backdrop && backdrop.indexOf('<div id="outline-backdrop"') === 0)
+          html.setAttribute("data-backdrop", "image");
+        return get;
+      })();
+    </script>
+    <noscript
+      ><meta http-equiv="refresh" content="0; URL=cgi-bin/luci/"
+    /></noscript>
+  </head>
+  <body>
+    <script>
+      if (document.documentElement.hasAttribute("data-backdrop"))
+        document.write(outline("backdrop"));
+    </script>
+    <!-- The sign-in page's own column (sysauth.ut) in its "redirecting"
+         state: the login picks it up with nothing moving, then opens the
+         form under it. -->
+    <main class="auth-page">
+      <div class="auth is-on">
+        <div class="auth-measure">
+          <div class="auth-view" data-state="redirecting">
+            <div class="auth-head">
+              <span class="auth-mark">
+                <img
+                  id="outline-logo"
+                  src="/luci-static/outline/images/logo.png"
+                  alt=""
+                  width="40"
+                  height="40"
+                />
+                <svg
+                  class="auth-badge"
+                  data-status="redirecting"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="3"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M5 12h14" />
+                  <path d="m12 5 7 7-7 7" />
+                </svg>
+              </span>
+              <h1 class="auth-title" id="outline-title"></h1>
+              <p class="auth-sub" role="status">
+                <span
+                  class="auth-shimmer"
+                  data-status="redirecting"
+                  id="outline-status"
+                  >Redirecting</span
+                >
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="login-footer">
+        <ul class="login-footer-links" id="outline-links"></ul>
+      </footer>
+    </main>
+    <script>
+      (function () {
+        /* The column's entrance starts now; the login carries it on. */
+        var started = Date.now();
+        var auth = {};
+        try {
+          auth = JSON.parse(outline("auth")) || {};
+        } catch (e) {}
+        var host = outline("host");
+        var logo = outline("logo");
+        var text = function (id, value) {
+          var el = document.getElementById(id);
+          if (value) el.textContent = value;
+          else if (id != "outline-status") el.remove();
+        };
+        text("outline-title", auth.title || host);
+        text("outline-status", auth.redirecting);
+        /* The shimmer's phase follows the clock (1.8s, login.css), so the
+           login's "Redirecting" carries it on instead of restarting. */
+        var shimmer = document.getElementById("outline-status");
+        (shimmer.getAnimations ? shimmer.getAnimations() : []).forEach(
+          function (a) {
+            if (a.animationName === "auth-shimmer")
+              a.currentTime =
+                (performance.timeOrigin + performance.now()) % 1800;
+          },
+        );
+        if (logo) document.getElementById("outline-logo").src = logo;
+        var links = document.getElementById("outline-links");
+        (auth.links || []).forEach(function (l) {
+          var li = document.createElement("li");
+          var a = document.createElement("a");
+          a.textContent = l[0];
+          if (/^https:\/\//.test(l[1])) a.href = l[1];
+          a.target = "_blank";
+          a.rel = "noreferrer";
+          li.appendChild(a);
+          links.appendChild(li);
+        });
+
+        /* Leave only once the column is on screen: navigating from <head>
+	   left nothing painted to hold, and the browser showed its own blank
+	   page. */
+        requestAnimationFrame(function () {
+          /* The login takes over this very column. */
+          try {
+            sessionStorage.setItem("outline.from-root", String(started));
+          } catch (e) {}
+          setTimeout(function () {
+            location.replace("/cgi-bin/luci/");
+          }, 0);
+        });
+      })();
+    </script>
+  </body>
+</html>

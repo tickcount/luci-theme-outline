@@ -73,15 +73,35 @@ test("production assets stay within raw-transfer budgets", () => {
   // 215K: the navbar's floating bar on phones (brand pill, indicators,
   // theme, burger; the scroll blur at every width), ~1.5 KB.
   // 220K: the floating mobile bar also applies to the sidebar layout.
-  assert.ok(main <= 220_000, `main.css ${main} B exceeds 220 KB`);
-  assert.ok(login <= 11_000, `login.css ${login} B exceeds 11 KB`);
+  // 220.5K: the dialog fades out as well as in, and LuCI pages opt in to
+  // the cross-document view transition the login card leaves through.
+  // 246K: Appearance › Navigation's styles -- three Synara sidebars
+  // (docked, floating, inset; folding sections, the collapsed rail), the
+  // pills' capsule and the bar -- and the window backdrop (its picture's
+  // position, frosted dialogs over it), ~26 KB raw (~4 KB gzip).
+  // 247.5K: the phone drawer as the sidebar's panel, the phone bar for
+  // Bar, frosted page lists, and the view's loader as the sign-in's
+  // shimmering line (~1 KB).
+  // 248K: the blur behind the open phone drawer and its frost over a
+  // backdrop (Safari still needs -webkit-backdrop-filter beside each).
+  assert.ok(main <= 248_000, `main.css ${main} B exceeds 248 KB`);
+  // 11.5K: the login card -- loading/password/connected states, the
+  // skiper21-style field, shimmer, selection colour and the view-transition
+  // hand-off to LuCI.
+  // 15.5K: the backdrop (Appearance › Backdrop) behind the sign-in and the
+  // site root; the sign-in after Family's (a centred column, the footnote,
+  // the error's reveal, the footer pill and links, its spring curve as a
+  // CSS linear()).
+  assert.ok(login <= 15_500, `login.css ${login} B exceeds 15.5 KB`);
   // 17.5K: palette tabs (third-level nodes, redirect-parent folding, legacy
   // recents mapping, parent-aware scoring, per-segment path words) added
   // ~1.2 KB; the admin total below moved by the same amount.
   // 18.5K: the ChatGPT sidebar's icon rail and the palette's section
   // filter pills added ~0.7 KB; the admin total below still holds.
   // 19K: monogram icons for sections the icon map doesn't know.
-  assert.ok(menu <= 19_000, `menu-outline.js ${menu} B exceeds 19 KB`);
+  // 20.5K: the sidebar's section rows (icon, chevron, kept folds), its
+  // brand logo and foot logout, and the rail's search.
+  assert.ok(menu <= 20_500, `menu-outline.js ${menu} B exceeds 20.5 KB`);
   // 16.5K: the devkit patch that leaves a view's own History API calls
   // (pushState/replaceState) and its back/forward between them to the view,
   // ~0.65 KB.
@@ -96,7 +116,8 @@ test("production assets stay within raw-transfer budgets", () => {
   // 8.6K: the drawer resets (closed, unanimated) whenever the window
   // crosses the phone breakpoint, so narrowing it no longer slides the
   // sidebar across the page.
-  assert.ok(sidebar <= 8_600, `sidebar-outline.js ${sidebar} B exceeds 8.6 KB`);
+  // 9.5K: section folds, ⌘B and the navbars' page-list placement.
+  assert.ok(sidebar <= 9_500, `sidebar-outline.js ${sidebar} B exceeds 9.5 KB`);
   assert.ok(
     // 232.5K (was 217.5K under Inter): Geist saves 19 KB, the full ChatGPT
     // restyle (CSS + rail/palette JS) spends ~24 KB.
@@ -109,8 +130,12 @@ test("production assets stay within raw-transfer budgets", () => {
     // 288K: follows main.css's 215K ceiling (phone navbar) and the
     // drawer's breakpoint reset.
     // 293K: includes the shared mobile bar for the sidebar layout.
-    main + menu + router + sidebar + font <= 293_000,
-    "admin assets exceed 293 KB",
+    // 294K: the dialog fades out as well as in (a discrete display
+    // transition on the overlay, the closed state on the dialog), ~0.3 KB.
+    // 322.5K: Appearance › Navigation's styles and the backdrop (main.css
+    // +25.5 KB, menu and sidebar JS +2 KB).
+    main + menu + router + sidebar + font <= 322_500,
+    "admin assets exceed 322.5 KB",
   );
   assert.ok(login + font + logo <= 60_000, "login assets exceed 60 KB");
 });

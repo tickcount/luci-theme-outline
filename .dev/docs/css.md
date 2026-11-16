@@ -4,7 +4,7 @@ Style with TailwindCSS v4 `@apply`, using CSS Nesting (`&:hover`, `&[disabled]`,
 
 ## Import order
 
-`main.css` import order is meaningful (later imports win the cascade): `_tokens.css` → `_base.css` → `_layout.css` → `components/_*.css` → `_utilities.css` → `_shared.css`. New component styles get their own `components/_name.css`, imported before `_utilities.css`. Third-party app patches are **not** bundled into `main.css` — they load on demand per page.
+`main.css` import order is meaningful (later imports win the cascade): `_tokens.css` → `_base.css` → `_layout.css` → `_nav.css` (navigation styles, surfaces over the backdrop) → `_backdrop.css` (the picture; login.css imports it too) → `components/_*.css` → `_utilities.css` → `_shared.css`. New component styles get their own `components/_name.css`, imported before `_utilities.css`. Third-party app patches are **not** bundled into `main.css` — they load on demand per page.
 
 Built CSS keeps Tailwind's native `@layer` structure. Theme partials (`_base.css`, `components/*`, `_utilities.css`, …) are plain unlayered CSS — organization comes from the file split, never wrap rules in `@layer`. Unlayered partials outrank Tailwind's layered base/utilities regardless of specificity; the OKLCH tokens already gate browsers to ones with `@layer` support.
 
@@ -50,4 +50,4 @@ The theme follows ChatGPT's settings UI (captured 2026-10 from chatgpt.com/setti
 ## Icons, two sources
 
 - `.dev/src/assets/icons/` (Lucide SVGs) are referenced from CSS via the `@assets` alias as `mask-image`/`mask`, so they inherit `currentColor`.
-- `.dev/public/outline/icons/` are SVGs referenced directly via `<img>`/JS (sidebar, menu, login, theme toggle) and copied verbatim to `htdocs/luci-static/outline/icons/`.
+- `.dev/public/outline/icons/` are SVGs referenced directly via `<img>`/JS (sidebar, menu, login, the palette's modes) and copied verbatim to `htdocs/luci-static/outline/icons/`.

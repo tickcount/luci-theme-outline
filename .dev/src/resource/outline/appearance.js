@@ -1,5 +1,5 @@
 "use strict";
-"require view";
+"require baseclass";
 "require rpc";
 "require uci";
 "require ui";
@@ -7,9 +7,14 @@
 "require outline.presets as presets";
 "require outline.share as share";
 "require outline.ui as w";
+"require outline.brand as brand";
 
 /*
- * System › Outline Theme › Appearance -- the Codex "Appearance" page for LuCI.
+ * The theme's Appearance settings -- the Codex "Appearance" page for LuCI --
+ * drawn in System › System › Language and Style under the Design field
+ * while Outline is picked there (patches/admin-system-system.js). A module,
+ * not a view: a view cannot be required on another page -- LuCI
+ * instantiates it, and a view's constructor takes over #view.
  *
  * Controls preview on this page only: the page rewrites the
  * <style id="outline-appearance"> element header.ut emits (and the mode and
@@ -19,14 +24,11 @@
  * the derived `list token` entries header.ut assembles the sheet from.
  * Two themes are always kept -- light and dark -- and "Separate light and
  * dark modes" only decides whether both are shown (page state, as in Codex).
+ * The brand pictures (logo, app icon, backdrop) are outline/brand.js, saved
+ * in the same chain.
  */
 
 const callState = rpc.declare({ object: "luci.outline", method: "get_state" });
-const callActivate = rpc.declare({
-  object: "luci.outline",
-  method: "activate",
-  params: ["enable"],
-});
 
 const VARIANT_FIELDS = [
   "preset",
@@ -42,6 +44,25 @@ const VARIANT_FIELDS = [
 ];
 
 const CONTENT_WIDTH = { min: 600, max: 2560, def: 920 };
+
+/* Navigation styles by kind (header.ut keeps the same map). */
+const NAV_KIND = {
+  docked: "sidebar",
+  floating: "sidebar",
+  inset: "sidebar",
+  pills: "navbar",
+  bar: "navbar",
+};
+
+/* The backdrop's blur (px) and coat (% of the page colour over it). The
+   coat's floor keeps muted text at AA over any picture (light keeps 90). */
+/* How the picture sits in the window, as macOS offers it. */
+const BACKDROP_FIT = ["fill", "fit", "stretch", "center", "tile"];
+
+const BACKDROP = {
+  backdrop_blur: { min: 0, max: 80, def: 48 },
+  backdrop_coat: { min: 86, max: 100, def: 90 },
+};
 
 const SIZES = {
   ui_font_size: { min: 11, max: 16, def: 14 },
@@ -78,6 +99,12 @@ function stateFrom(mode) {
       s = SIZES[k];
     return n >= s.min && n <= s.max ? n : s.def;
   };
+  const range = (k) => {
+    const n = parseInt(ap[k], 10),
+      s = BACKDROP[k];
+    return n >= s.min && n <= s.max ? n : s.def;
+  };
+  const navigation = ap.navigation == "sidebar" ? "sidebar" : "navbar";
   return {
     appearance: {
       mode: mode,
@@ -88,7 +115,17 @@ function stateFrom(mode) {
       ui_font_size: size("ui_font_size"),
       content_font_size: size("content_font_size"),
       code_font_size: size("code_font_size"),
-      navigation: ap.navigation == "sidebar" ? "sidebar" : "navbar",
+      navigation: navigation,
+      nav_style:
+        NAV_KIND[ap.nav_style] == navigation
+          ? ap.nav_style
+          : navigation == "sidebar"
+            ? "docked"
+            : "pills",
+      backdrop_blur: range("backdrop_blur"),
+      backdrop_coat: range("backdrop_coat"),
+      backdrop_fit:
+        BACKDROP_FIT.indexOf(ap.backdrop_fit) > 0 ? ap.backdrop_fit : "fill",
       content_width:
         Number.isInteger(Number(ap.content_width)) &&
         +ap.content_width >= CONTENT_WIDTH.min &&
@@ -109,16 +146,18 @@ function variantName(v) {
   return v == "light" ? _("Light") : _("Dark");
 }
 
-return view.extend({
+const Page = {
   load() {
     return Promise.all([
       L.resolveDefault(callState(), null),
+      brand.list(),
       uci.load("outline").catch(() => null),
-    ]).then((r) => r[0]);
+    ]);
   },
 
   render(data) {
-    this.data = data || {};
+    this.data = data[0] || {};
+    this.brand = brand.create(data[1], () => this.paint());
     this.state = stateFrom(this.initialMode());
     this.saved = clone(this.state);
     this.separate = false;
@@ -133,6 +172,7 @@ return view.extend({
       if (!this.root.isConnected) {
         mo.disconnect();
         this.restoreOriginal();
+        this.brand.restore();
         return;
       }
       if (!this.separate && this.shownVariant != this.effectiveVariant())
@@ -145,7 +185,7 @@ return view.extend({
     mo.observe(document.body, { childList: true, subtree: true });
 
     this.paint();
-    return E("div", {}, [w.styleNode(), this.root]);
+    return E("div", {}, [w.styleNode(), this.root, this.brand.input]);
   },
 
   /* ── Preview, only while this page is shown ── */
@@ -165,8 +205,14 @@ return view.extend({
       css: el ? el.textContent : null,
       darkmode: html.getAttribute("data-darkmode"),
       reduced: html.getAttribute("data-reduced-motion"),
-      nav: html.getAttribute("data-nav"),
+      nav: html.getAttribute("data-nav-style"),
       collapsed: html.getAttribute("data-sidebar-collapsed"),
+      backdrop: document
+        .getElementById("outline-backdrop")
+        ?.getAttribute("style"),
+      fit: document
+        .getElementById("outline-backdrop")
+        ?.getAttribute("data-fit"),
       metas: Array.prototype.map.call(
         document.querySelectorAll('meta[name="theme-color"]'),
         (m) => [m, m.getAttribute("content")],
@@ -187,6 +233,9 @@ return view.extend({
     if (o.reduced == null) html.removeAttribute("data-reduced-motion");
     else html.setAttribute("data-reduced-motion", o.reduced);
     if (o.nav != null) this.applyNav(o.nav, o.collapsed);
+    const bd = document.getElementById("outline-backdrop");
+    if (bd && o.backdrop != null) bd.setAttribute("style", o.backdrop);
+    if (bd && o.fit != null) bd.setAttribute("data-fit", o.fit);
     o.metas.forEach((e) => e[0].setAttribute("content", e[1]));
     w.closePopover();
   },
@@ -246,10 +295,12 @@ return view.extend({
     );
   },
 
-  /* The layout attribute header.ut sets, plus the sidebar's collapsed state:
-     a navbar has none, a sidebar gets this browser's back. */
-  applyNav(nav, collapsed) {
+  /* The layout attributes header.ut sets (kind and style), plus the
+     sidebar's collapsed state: a navbar has none, a sidebar gets this
+     browser's back. */
+  applyNav(style, collapsed) {
     const html = document.documentElement;
+    const nav = NAV_KIND[style] || "navbar";
     if (collapsed == null) {
       let stored = null;
       try {
@@ -257,20 +308,38 @@ return view.extend({
       } catch (e) {}
       collapsed = nav != "navbar" && stored == "true" ? "true" : "false";
     }
+    window.OutlineSidebar?._hideCollapsedPopover?.();
     html.setAttribute("data-nav", nav);
+    html.setAttribute("data-nav-style", style);
     html.setAttribute("data-sidebar-collapsed", collapsed);
     document
       .getElementById("sidebar")
       ?.setAttribute("data-collapsed", collapsed);
   },
 
-  previewNav(nav) {
-    if (this.outlineActive()) this.applyNav(nav);
+  previewNav(style) {
+    if (this.outlineActive()) this.applyNav(style);
   },
 
-  setNavigation(nav) {
-    this.state.appearance.navigation = nav;
-    this.previewNav(nav);
+  setNavStyle(style) {
+    this.state.appearance.nav_style = style;
+    this.state.appearance.navigation = NAV_KIND[style];
+    this.previewNav(style);
+    this.paint();
+  },
+
+  previewBackdrop() {
+    const bd = document.getElementById("outline-backdrop");
+    if (!bd || !this.outlineActive()) return;
+    const ap = this.state.appearance;
+    bd.style.setProperty("--backdrop-blur", ap.backdrop_blur + "px");
+    bd.style.setProperty("--backdrop-coat", ap.backdrop_coat / 100);
+    bd.setAttribute("data-fit", ap.backdrop_fit);
+  },
+
+  setBackdrop(patch) {
+    Object.assign(this.state.appearance, patch);
+    this.previewBackdrop();
   },
 
   previewMotion(value) {
@@ -320,47 +389,9 @@ return view.extend({
   /* Stage the page state as LuCI unsaved changes. view's default
 	   handleSaveApply runs this, then ui.changes.apply(). */
   handleSave() {
-    const s = this.state;
-    const ensure = (sid, type) => {
-      if (!uci.get("outline", sid)) uci.add("outline", type, sid);
-    };
-    const put = (sid, opt, val) => {
-      if (val == null || val === "" || (Array.isArray(val) && !val.length))
-        uci.unset("outline", sid, opt);
-      else uci.set("outline", sid, opt, Array.isArray(val) ? val : String(val));
-    };
-
-    ensure("appearance", "appearance");
-    for (const k of Object.keys(s.appearance))
-      put("appearance", k, s.appearance[k]);
-    /* The router no longer reads these two; drop them from older setups. */
-    uci.unset("outline", "appearance", "theme_color_light");
-    uci.unset("outline", "appearance", "theme_color_dark");
-
-    for (const v of ["light", "dark"]) {
-      ensure(v, "theme");
-      for (const k of VARIANT_FIELDS) put(v, k, s[v][k]);
-      put(v, "token", palette.tokens(v, s[v]));
-    }
-
-    return uci
-      .save()
-      .then(() => {
-        this.saved = clone(s);
-        /* The mode is also this browser's own choice. */
-        const stored =
-          s.appearance.mode == "system" ? "device" : s.appearance.mode;
-        if (window.OutlineSidebar && window.OutlineSidebar.applyTheme)
-          window.OutlineSidebar.applyTheme(stored);
-        else
-          try {
-            localStorage.setItem("outline.theme", stored);
-          } catch (e) {}
-        this.original.darkmode =
-          document.documentElement.getAttribute("data-darkmode");
-        if (ui.changes && ui.changes.init) ui.changes.init();
-        this.paint();
-      })
+    return this.brand
+      .stage()
+      .then(() => this.stageAppearance())
       .catch((err) => {
         ui.addNotification(
           null,
@@ -377,13 +408,77 @@ return view.extend({
       });
   },
 
+  stageAppearance() {
+    const s = this.state;
+    const ensure = (sid, type) => {
+      if (!uci.get("outline", sid)) uci.add("outline", type, sid);
+    };
+    /* Only what differs from the stored value: LuCI counts every write as
+       a change (each value of a list on its own), so restaging the token
+       lists would add ~300 changes to every save. */
+    const put = (sid, opt, val) => {
+      const cur = uci.get("outline", sid, opt);
+      if (val == null || val === "" || (Array.isArray(val) && !val.length)) {
+        if (cur != null) uci.unset("outline", sid, opt);
+      } else if (Array.isArray(val)) {
+        const same =
+          Array.isArray(cur) &&
+          cur.length == val.length &&
+          cur.every((x, i) => x === val[i]);
+        if (!same) uci.set("outline", sid, opt, val);
+      } else if (cur !== String(val)) uci.set("outline", sid, opt, String(val));
+    };
+
+    ensure("appearance", "appearance");
+    for (const k of Object.keys(s.appearance))
+      put("appearance", k, s.appearance[k]);
+    /* The router no longer reads these two; drop them from older setups. */
+    put("appearance", "theme_color_light", null);
+    put("appearance", "theme_color_dark", null);
+
+    for (const v of ["light", "dark"]) {
+      ensure(v, "theme");
+      for (const k of VARIANT_FIELDS) put(v, k, s[v][k]);
+      put(v, "token", palette.tokens(v, s[v]));
+    }
+
+    return uci.save().then(() => {
+      this.saved = clone(s);
+      this.brand.markSaved();
+      /* The mode is also this browser's own choice. */
+      const stored =
+        s.appearance.mode == "system" ? "device" : s.appearance.mode;
+      if (window.OutlineSidebar && window.OutlineSidebar.applyTheme)
+        window.OutlineSidebar.applyTheme(stored);
+      else
+        try {
+          localStorage.setItem("outline.theme", stored);
+        } catch (e) {}
+      this.original.darkmode =
+        document.documentElement.getAttribute("data-darkmode");
+      if (ui.changes && ui.changes.init) ui.changes.init();
+      this.paint();
+    });
+  },
+
+  /* Anything to stage: the settings or a brand picture changed since they
+     were loaded (or last saved). */
+  dirty() {
+    return (
+      JSON.stringify(this.state) != JSON.stringify(this.saved) ||
+      JSON.stringify(this.brand.state) != JSON.stringify(this.brand.saved)
+    );
+  },
+
   /* Back to what was loaded (or last saved) -- preview included. */
   handleReset() {
     this.state = clone(this.saved);
     this.separate = false;
     this.previewMode(this.state.appearance.mode);
     this.previewMotion(this.state.appearance.reduced_motion);
-    this.previewNav(this.state.appearance.navigation);
+    this.previewNav(this.state.appearance.nav_style);
+    this.previewBackdrop();
+    this.brand.reset();
     this.commit();
   },
 
@@ -427,6 +522,9 @@ return view.extend({
 
   paint() {
     w.closePopover();
+    // The backdrop's blur and coat follow the page state, whatever the
+    // server rendered (a picture picked or uploaded meanwhile included).
+    this.previewBackdrop();
     const variants = this.separate
       ? ["light", "dark"]
       : [this.effectiveVariant()];
@@ -443,10 +541,24 @@ return view.extend({
         }),
         w.row({
           variant: "nested",
-          label: _("Navigation"),
-          description: _("Sidebar, or floating pills along the top"),
-          control: w.navPicker(this.state.appearance.navigation, (n) =>
-            this.setNavigation(n),
+          label: _("Sidebar"),
+          description: _("Docked, floating on the page, or the page inset"),
+          control: w.navPicker(
+            "sidebar",
+            this.state.appearance.nav_style,
+            (n) => this.setNavStyle(n),
+            "ot-nav",
+          ),
+        }),
+        w.row({
+          variant: "nested",
+          label: _("Navbar"),
+          description: _("Floating pills, or a bar along the top"),
+          control: w.navPicker(
+            "navbar",
+            this.state.appearance.nav_style,
+            (n) => this.setNavStyle(n),
+            "ot-nav",
           ),
         }),
         w.row({
@@ -471,6 +583,62 @@ return view.extend({
             variants.map((v) => this.themeCard(v)),
           )
         : this.themeCard(variants[0]),
+    ]);
+
+    const ap = this.state.appearance;
+    const hasBackdrop = !!this.brand.backdropUrl();
+    const backdrop = w.section(_("Backdrop"), null, [
+      w.card([
+        this.brand.backdropRow(),
+        hasBackdrop
+          ? w.row({
+              label: _("Position"),
+              control: w.segmented(
+                [
+                  { value: "fill", label: _("Fill") },
+                  { value: "fit", label: _("Fit") },
+                  { value: "stretch", label: _("Stretch") },
+                  { value: "center", label: _("Center") },
+                  { value: "tile", label: _("Tile") },
+                ],
+                ap.backdrop_fit,
+                (v) => this.setBackdrop({ backdrop_fit: v }),
+              ),
+            })
+          : null,
+        hasBackdrop
+          ? w.row({
+              label: _("Blur"),
+              control: w.slider({
+                value: ap.backdrop_blur,
+                min: BACKDROP.backdrop_blur.min,
+                max: BACKDROP.backdrop_blur.max,
+                label: _("Blur"),
+                unit: " px",
+                onInput: (n) => this.setBackdrop({ backdrop_blur: n }),
+                onCommit: (n) => this.setBackdrop({ backdrop_blur: n }),
+              }),
+            })
+          : null,
+        hasBackdrop
+          ? w.row({
+              label: _("Page colour over it"),
+              control: w.slider({
+                value: ap.backdrop_coat,
+                min: BACKDROP.backdrop_coat.min,
+                max: BACKDROP.backdrop_coat.max,
+                label: _("Page colour over it"),
+                unit: "%",
+                onInput: (n) => this.setBackdrop({ backdrop_coat: n }),
+                onCommit: (n) => this.setBackdrop({ backdrop_coat: n }),
+              }),
+            })
+          : null,
+      ]),
+    ]);
+
+    const brandSection = w.section(_("Brand"), null, [
+      w.card([this.brand.logoRow(), this.brand.iconRow()]),
     ]);
 
     const advToggle = E(
@@ -521,47 +689,31 @@ return view.extend({
     advanced.lastChild.id = "ot-advanced";
 
     const nodes = [
-      E("h2", { name: "content", class: "ot-head" }, _("Appearance")),
       this.banner(),
-      E("div", { class: "ot-sections" }, [visual, advanced]),
+      E("div", { class: "ot-sections" }, [
+        visual,
+        backdrop,
+        brandSection,
+        advanced,
+      ]),
     ];
 
     this.root.replaceChildren(...nodes.filter(Boolean));
   },
 
+  /* Shown only while Outline is the theme (the tab's patch), so the one
+     thing to say is that the settings service did not answer. */
   banner() {
-    const t = this.data.theme || {};
-    const pkg = L.url("admin/system/outline/package");
-    const go = () => {
-      location.href = pkg;
-    };
-
-    if (!this.data.config)
-      return E("div", { class: "ot-banner warn" }, [
-        E(
-          "span",
-          {},
-          _(
-            "The settings service did not answer. Reload the page; if it persists, restart rpcd.",
-          ),
+    if (this.data.config) return null;
+    return E("div", { class: "ot-banner warn" }, [
+      E(
+        "span",
+        {},
+        _(
+          "The settings service did not answer. Reload the page; if it persists, restart rpcd.",
         ),
-      ]);
-    if (!t.active)
-      return E("div", { class: "ot-banner" }, [
-        E(
-          "span",
-          {},
-          _("Outline is installed, but LuCI is using a different theme."),
-        ),
-        w.button(_("Use Outline"), {
-          kind: "primary",
-          onClick: (ev) => {
-            ev.currentTarget.disabled = true;
-            callActivate(true).then(() => location.reload());
-          },
-        }),
-      ]);
-    return null;
+      ),
+    ]);
   },
 
   themeCard(v) {
@@ -1012,5 +1164,20 @@ return view.extend({
         }),
       }),
     ]);
+  },
+};
+
+return baseclass.extend({
+  /* What the page needs before it draws (the state rpc, the brand
+     pictures, the outline config). */
+  load() {
+    return Page.load();
+  },
+
+  /* A page instance: render(data) builds it; handleSave stages it as LuCI
+     unsaved changes, dirty() says whether there is anything to stage,
+     handleReset drops what was changed. */
+  create() {
+    return Object.create(Page);
   },
 });

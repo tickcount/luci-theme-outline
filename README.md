@@ -41,8 +41,9 @@ including the apps you added, follows it.
    ```
 
 2. **Reload LuCI.** The script makes Outline the active theme.
-3. **Make it yours** in <kbd>System</kbd> › <kbd>Outline Theme</kbd>: mode,
-   preset, colours, fonts, logo and app icon.
+3. **Make it yours** in <kbd>System</kbd> › <kbd>System</kbd> ›
+   <kbd>Language and Style</kbd>, right under the Design field: mode, preset,
+   colours, fonts, logo and app icon.
 
 > [!TIP]
 > Press <kbd>⌘</kbd> <kbd>K</kbd> (or <kbd>Ctrl</kbd> <kbd>K</kbd>) anywhere to
@@ -54,17 +55,17 @@ including the apps you added, follows it.
   <tr>
     <td width="50%" valign="top">
       <h3>🧭 Navbar or sidebar</h3>
-      <p>Floating pills across the top, or a ChatGPT-style icon rail with one section at a time. On phones, a drawer under glass pills that blur as the page scrolls.</p>
+      <p>A docked, floating or inset sidebar with folding sections, or floating pills or a bar across the top, over an optional blurred backdrop picture. On phones, the sidebar's panel in a frosted drawer, under a top bar in the style you picked.</p>
     </td>
     <td width="50%" valign="top">
       <h3>⚡ No full reloads</h3>
-      <p>Moving between LuCI pages swaps only the content, so it feels instant. Browsers without the Navigation API keep classic page loads.</p>
+      <p>Moving between LuCI pages swaps only the content, so it feels instant. Opening the router, signing in and landing in LuCI is one column that carries over, with no blank page between. Browsers without the Navigation API keep classic page loads.</p>
     </td>
   </tr>
   <tr>
     <td valign="top">
       <h3>🌗 Light, dark and presets</h3>
-      <p>System, light or dark, remembered without a flash. Presets from ChatGPT and the Codex collection (Catppuccin, Dracula, Nord, Tokyo Night, …), or your own colours.</p>
+      <p>System, light or dark, set in the settings or the command palette and remembered without a flash. Presets from ChatGPT and the Codex collection (Catppuccin, Dracula, Nord, Tokyo Night, …), or your own colours.</p>
     </td>
     <td valign="top">
       <h3>⌘ Command palette</h3>
@@ -84,11 +85,11 @@ including the apps you added, follows it.
   <tr>
     <td valign="top">
       <h3>🏷️ Your branding</h3>
-      <p>The Outline logo, OpenWrt's, or your own, and one app icon from which every favicon and home-screen size is made.</p>
+      <p>The Outline logo, OpenWrt's, or your own, and one app icon from which every favicon and home-screen size is made. Pictures you no longer use are deleted, to spare the router's flash.</p>
     </td>
     <td valign="top">
       <h3>📦 Updates from LuCI</h3>
-      <p>Check for updates, update, switch LuCI to or away from Outline, or uninstall, all from the theme's own settings.</p>
+      <p>Check for updates and install them, or let the router do it every week (on by default), and remove Outline completely, from the theme's settings.</p>
     </td>
   </tr>
 </table>
@@ -98,7 +99,7 @@ including the apps you added, follows it.
 <table>
   <tr>
     <td width="50%" valign="top"><img src=".github/preview/mounts.png" alt="Mount Points"><p align="center"><sub><b>Settings pages</b>: cards with hairline rows and pill buttons</sub></p></td>
-    <td width="50%" valign="top"><img src=".github/preview/login.png" alt="Login"><p align="center"><sub><b>Login</b></sub></p></td>
+    <td width="50%" valign="top"><img src=".github/preview/login.png" alt="Login"><p align="center"><sub><b>Sign-in</b></sub></p></td>
   </tr>
   <tr>
     <td valign="top"><img src=".github/preview/analytics.png" alt="Realtime charts"><p align="center"><sub><b>Realtime graphs</b> in the Analytics style</sub></p></td>
@@ -115,23 +116,29 @@ including the apps you added, follows it.
 </table>
 
 <p align="center">
+  <img src=".github/preview/login-backdrop.png" alt="Sign-in over a backdrop picture" width="100%">
+  <br>
+  <sub><b>A backdrop picture</b> behind the whole window, the sign-in included: blurred under the page colour, in light and dark.</sub>
+</p>
+
+<p align="center">
   <img src=".github/preview/mobile.png" alt="Outline on phones" width="100%">
   <br>
-  <sub><b>On phones</b>: the menu in a drawer, the controls in floating glass pills.</sub>
+  <sub><b>On phones</b>: the menu in a frosted drawer, the top bar in your navbar's style.</sub>
 </p>
 
 ## 🔧 Settings
 
-<kbd>System</kbd> › <kbd>Outline Theme</kbd>, after ChatGPT and Codex's
+<kbd>System</kbd> › <kbd>System</kbd> › <kbd>Language and Style</kbd>, under
+the Design field while it says Outline, after ChatGPT and Codex's
 <i>Settings › Appearance</i>:
 
-| Tab            | What it holds                                                                                                                                                                                                                                                                                                                                                                             |
-| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Appearance** | Mode (System, Light, Dark); navigation (navbar or sidebar); a preset (Outline, ChatGPT and the Codex collection: Absolutely, Ayu, Catppuccin, Dracula, Everforest, GitHub, Gruvbox, Linear, Nord, Rose Pine, Solarized, Tokyo Night, Vercel, …); accent, background and foreground colours; fonts and UI, content and code sizes; contrast; reduce motion; separate light and dark themes |
-| **Branding**   | The logo (Outline, OpenWrt's, or an upload) and one app icon for every favicon and home-screen size                                                                                                                                                                                                                                                                                       |
-| **Package**    | Check for updates, update, switch LuCI to or away from Outline, uninstall                                                                                                                                                                                                                                                                                                                 |
+| Section        | What it holds                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Outline**    | Check for updates and update; automatic updates (weekly, on by default); remove Outline completely                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| **Appearance** | Mode (System, Light, Dark); navigation (a docked, floating or inset sidebar, or floating pills or a bar along the top); a backdrop picture, blurred behind the whole window; the logo (Outline, OpenWrt's, or an upload) and one app icon for every favicon and home-screen size; a preset (Outline, ChatGPT and the Codex collection: Absolutely, Ayu, Catppuccin, Dracula, Everforest, GitHub, Gruvbox, Linear, Nord, Rose Pine, Solarized, Tokyo Night, Vercel, …); accent, background and foreground colours; fonts and UI, content and code sizes; contrast; reduce motion; separate light and dark themes |
 
-Changes preview on the settings page only and are kept with LuCI's own
+Changes preview on that page only and are kept with its own
 <kbd>Save</kbd> or <kbd>Save & Apply</kbd>. Themes copy and import as
 `outline-theme-v1:` strings, and Codex `codex-theme-v1:` strings import too.
 How it works: [.dev/docs/settings.md](.dev/docs/settings.md).
@@ -178,8 +185,8 @@ wget -qO- https://raw.githubusercontent.com/tickcount/luci-theme-outline/master/
 | `--uninstall`   | Remove the theme; its settings stay in `/etc/config/outline` |
 | `--purge`       | Remove the theme, its settings and uploaded brand images     |
 
-Updates, switching the theme on or off and removal are also in LuCI, under
-<kbd>System</kbd> › <kbd>Outline Theme</kbd> › <kbd>Package</kbd>.
+Updates and removal are also in LuCI, in the Outline section of
+<kbd>System</kbd> › <kbd>System</kbd> › <kbd>Language and Style</kbd>.
 
 </details>
 
@@ -225,8 +232,8 @@ install it with opkg or apk.
 
 <br>
 
-<kbd>System</kbd> › <kbd>Outline Theme</kbd> › <kbd>Package</kbd> switches
-LuCI away from Outline, or run the installer with `--uninstall`. Your Outline
+Pick another Design in <kbd>System</kbd> › <kbd>System</kbd> ›
+<kbd>Language and Style</kbd>, or run the installer with `--uninstall`. Your Outline
 settings stay, so switching back later restores them.
 
 </details>

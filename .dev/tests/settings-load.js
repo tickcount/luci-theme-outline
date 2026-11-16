@@ -1,4 +1,4 @@
-// Loads a System › Outline Theme module from .dev/src/resource in node. A module's
+// Loads one of the theme's settings modules from .dev/src/resource in node. A module's
 // body is a function whose last statement is `return baseclass.extend({...})`;
 // `'require x as y'` directives become parameters we inject.
 import { readFileSync } from "node:fs";

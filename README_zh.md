@@ -40,8 +40,8 @@ Outline 让路由器的 LuCI 看起来、用起来都像 **ChatGPT 的设置页*
    ```
 
 2. **刷新 LuCI**。脚本会把 Outline 设为当前主题。
-3. 在 <kbd>系统</kbd> › <kbd>Outline Theme</kbd> 中**按你的喜好调整**：模式、
-   预设、颜色、字体、Logo 和应用图标。
+3. 在 <kbd>系统</kbd> › <kbd>系统</kbd> › <kbd>语言和界面</kbd> 的“主题”字段下方
+   **按你的喜好调整**：模式、预设、颜色、字体、Logo 和应用图标。
 
 > [!TIP]
 > 在任意页面按 <kbd>⌘</kbd> <kbd>K</kbd>（或 <kbd>Ctrl</kbd> <kbd>K</kbd>），
@@ -53,17 +53,17 @@ Outline 让路由器的 LuCI 看起来、用起来都像 **ChatGPT 的设置页*
   <tr>
     <td width="50%" valign="top">
       <h3>🧭 顶栏或侧边栏</h3>
-      <p>页面顶部的悬浮胶囊导航，或 ChatGPT 风格的图标栏（每次显示一个分区）。手机上是抽屉菜单，顶部的玻璃胶囊会在页面滚动时变得模糊。</p>
+      <p>可折叠分区的侧边栏（固定、悬浮或内嵌），或顶部的悬浮胶囊或横条，可选模糊背景图。手机上是磨砂抽屉中的侧边栏菜单，顶栏沿用你选择的样式。</p>
     </td>
     <td width="50%" valign="top">
       <h3>⚡ 无需整页刷新</h3>
-      <p>在 LuCI 页面之间切换时只替换内容，几乎瞬间完成。不支持 Navigation API 的浏览器保持传统的整页加载。</p>
+      <p>在 LuCI 页面之间切换时只替换内容，几乎瞬间完成。从打开路由器地址、登录到进入 LuCI，同一栏内容一路衔接，中间没有空白页。不支持 Navigation API 的浏览器保持传统的整页加载。</p>
     </td>
   </tr>
   <tr>
     <td valign="top">
       <h3>🌗 浅色、深色与预设</h3>
-      <p>跟随系统、浅色或深色，偏好自动保存，加载时无闪烁。可选 ChatGPT 与 Codex 系列预设（Catppuccin、Dracula、Nord、Tokyo Night……），也可以自定义颜色。</p>
+      <p>跟随系统、浅色或深色，在设置或命令面板中切换，偏好自动保存，加载时无闪烁。可选 ChatGPT 与 Codex 系列预设（Catppuccin、Dracula、Nord、Tokyo Night……），也可以自定义颜色。</p>
     </td>
     <td valign="top">
       <h3>⌘ 命令面板</h3>
@@ -83,11 +83,11 @@ Outline 让路由器的 LuCI 看起来、用起来都像 **ChatGPT 的设置页*
   <tr>
     <td valign="top">
       <h3>🏷️ 你的品牌</h3>
-      <p>使用 Outline 的 Logo、OpenWrt 的，或上传你自己的；一张应用图标即可生成全部 favicon 与主屏幕图标尺寸。</p>
+      <p>使用 Outline 的 Logo、OpenWrt 的，或上传你自己的；一张应用图标即可生成全部 favicon 与主屏幕图标尺寸。不再使用的图片会被删除，节省路由器的存储空间。</p>
     </td>
     <td valign="top">
       <h3>📦 在 LuCI 中更新</h3>
-      <p>检查更新、更新、在 Outline 与其他主题之间切换，或卸载，都在主题自己的设置页完成。</p>
+      <p>检查并安装更新，或让路由器每周自动更新（默认开启），以及彻底移除 Outline，都在主题的设置中完成。</p>
     </td>
   </tr>
 </table>
@@ -114,21 +114,26 @@ Outline 让路由器的 LuCI 看起来、用起来都像 **ChatGPT 的设置页*
 </table>
 
 <p align="center">
+  <img src=".github/preview/login-backdrop.png" alt="登录页上的背景图" width="100%">
+  <br>
+  <sub><b>背景图</b>铺在整个窗口后方，登录页也包括在内：在页面颜色下模糊显示，浅色与深色均可。</sub>
+</p>
+
+<p align="center">
   <img src=".github/preview/mobile.png" alt="Outline 在手机上" width="100%">
   <br>
-  <sub><b>手机上</b>：菜单在抽屉里，控件在悬浮的玻璃胶囊中。</sub>
+  <sub><b>手机上</b>：菜单在磨砂抽屉中，顶栏沿用所选导航栏的样式。</sub>
 </p>
 
 ## 🔧 设置
 
-<kbd>系统</kbd> › <kbd>Outline Theme</kbd>，参照 ChatGPT 与 Codex 的
+<kbd>系统</kbd> › <kbd>系统</kbd> › <kbd>语言和界面</kbd>（“主题”选为 Outline 时显示在其下方），参照 ChatGPT 与 Codex 的
 <i>设置 › 外观</i>：
 
-| 标签页                 | 内容                                                                                                                                                                                                                                                                                                                         |
-| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Appearance（外观）** | 模式（跟随系统、浅色、深色）；导航（顶栏或侧边栏）；主题预设（Outline、ChatGPT 以及 Codex 系列：Absolutely、Ayu、Catppuccin、Dracula、Everforest、GitHub、Gruvbox、Linear、Nord、Rose Pine、Solarized、Tokyo Night、Vercel……）；强调色、背景色与前景色；字体以及界面、内容、代码字号；对比度；减少动效；浅色与深色可分别设置 |
-| **Branding（品牌）**   | Logo（Outline、OpenWrt 或上传的图片）以及一张生成全部 favicon 与主屏幕图标的应用图标                                                                                                                                                                                                                                         |
-| **Package（软件包）**  | 检查更新、更新、在 Outline 与其他主题之间切换、卸载                                                                                                                                                                                                                                                                          |
+| 部分                   | 内容                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Outline**            | 检查并安装更新；自动更新（每周，默认开启）；彻底移除 Outline                                                                                                                                                                                                                                                                                                                                                                                                               |
+| **Appearance（外观）** | 模式（跟随系统、浅色、深色）；导航（侧边栏：固定、悬浮或内嵌；顶栏：胶囊或横条）；整个窗口后方的模糊背景图；Logo（Outline、OpenWrt 或上传的图片）以及一张生成全部 favicon 与主屏幕图标的应用图标；主题预设（Outline、ChatGPT 以及 Codex 系列：Absolutely、Ayu、Catppuccin、Dracula、Everforest、GitHub、Gruvbox、Linear、Nord、Rose Pine、Solarized、Tokyo Night、Vercel……）；强调色、背景色与前景色；字体以及界面、内容、代码字号；对比度；减少动效；浅色与深色可分别设置 |
 
 修改只在设置页预览，通过 LuCI 自带的 <kbd>保存</kbd> 或 <kbd>保存并应用</kbd> 生效。
 主题可以以 `outline-theme-v1:` 字符串复制和导入，Codex 的 `codex-theme-v1:` 字符串也可导入。
@@ -174,7 +179,7 @@ wget -qO- https://raw.githubusercontent.com/tickcount/luci-theme-outline/master/
 | `--uninstall`   | 卸载主题；设置保留在 `/etc/config/outline` |
 | `--purge`       | 卸载主题，并删除其设置与上传的品牌图片     |
 
-更新、启用或停用主题以及卸载，也可以在 LuCI 的 <kbd>系统</kbd> › <kbd>Outline Theme</kbd> › <kbd>Package</kbd> 中完成。
+更新和移除也可以在 LuCI 中完成：<kbd>系统</kbd> › <kbd>系统</kbd> › <kbd>语言和界面</kbd> 的 Outline 部分。
 
 </details>
 
@@ -217,7 +222,7 @@ make package/luci-theme-outline/compile V=s
 
 <br>
 
-在 <kbd>系统</kbd> › <kbd>Outline Theme</kbd> › <kbd>Package</kbd> 中把 LuCI 切换到其他主题，
+在 <kbd>系统</kbd> › <kbd>系统</kbd> › <kbd>语言和界面</kbd> 中选择其他主题，
 或运行安装脚本并加上 `--uninstall`。Outline 的设置会保留，以后切换回来时自动恢复。
 
 </details>

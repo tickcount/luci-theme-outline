@@ -12,7 +12,7 @@
 #
 # Run on the router as root. Works with opkg (OpenWrt ≤ 24.10) and apk
 # (25.12+). Later updates can also be installed from LuCI:
-# System › Outline Theme › Package.
+# System › System › Language and Style (its Outline section).
 
 set -e
 
@@ -220,4 +220,4 @@ clear_luci_cache
 
 ADDR="$(uci -q get network.lan.ipaddr | cut -d/ -f1)"
 say "Outline $TAG is installed$([ "$ACTIVATE" = 1 ] && echo " and active")."
-say "Open http://${ADDR:-<router>}/cgi-bin/luci -- settings: System › Outline Theme."
+say "Open http://${ADDR:-<router>}/cgi-bin/luci -- settings: System › System › Language and Style."

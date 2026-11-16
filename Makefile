@@ -6,7 +6,7 @@
 include $(TOPDIR)/rules.mk
 
 LUCI_TITLE:=Outline - a ChatGPT-style LuCI theme for OpenWrt.
-# The System › Outline Theme pages: an rpcd ucode backend (uci, files),
+# The theme's settings (System › System › Language and Style): an rpcd ucode backend (uci, files),
 # release lookups (uclient-fetch, jsonfilter). Runtime dependencies only
 # (control file Depends): the package ships templates and web files, so the
 # SDK has nothing to build for them. OpenWrt 25.12's luci.mk wants a version
@@ -15,8 +15,8 @@ LUCI_EXTRA_DEPENDS:=luci-base (>=0), rpcd-mod-ucode (>=0), ucode-mod-fs (>=0), u
 	uclient-fetch (>=0), jsonfilter (>=0)
 LUCI_PKGARCH:=all
 
-PKG_VERSION:=1.3.2
-PKG_RELEASE:=20261108
+PKG_VERSION:=1.4.0
+PKG_RELEASE:=20261116
 PKG_LICENSE:=Apache-2.0
 
 LUCI_MINIFY_CSS:=

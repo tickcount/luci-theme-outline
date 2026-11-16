@@ -1,0 +1,76 @@
+/* ── Backdrop ───────────────────────────────────────────────────────
+   Appearance › Backdrop: a picture behind the whole window, blurred once,
+   one coat of the page colour over it. header.ut renders #outline-backdrop
+   on every page (the login page and, through the theme's own pages, the
+   site root too) with the blur and coat as custom properties; this sheet is
+   imported by main.css and login.css, so they draw it alike. How the
+   admin's surfaces sit over it: _nav.css. */
+
+#outline-backdrop {
+  @apply pointer-events-none fixed inset-0 -z-1 hidden overflow-hidden [contain:strict];
+}
+
+html[data-backdrop] #outline-backdrop {
+  @apply block;
+}
+
+/* Fill (the default): covers the window, oversized by the blur radius so
+   the blurred edge never shows. Fit, Stretch, Center and Tile (macOS's
+   choices, #outline-backdrop[data-fit]) keep to the window: Fit and
+   Stretch show the whole picture, Fit on the page colour. */
+.backdrop-image {
+  @apply absolute inset-[calc(var(--backdrop-blur,48px)*-2)] bg-cover bg-center bg-no-repeat;
+  filter: blur(var(--backdrop-blur, 48px));
+
+  [data-fit]:not([data-fit="fill"]) > & {
+    @apply inset-0;
+  }
+
+  [data-fit="fit"] > & {
+    @apply bg-contain;
+  }
+
+  [data-fit="stretch"] > & {
+    @apply bg-[length:100%_100%];
+  }
+
+  [data-fit="center"] > & {
+    @apply bg-auto;
+  }
+
+  [data-fit="tile"] > & {
+    @apply bg-auto bg-top-left bg-repeat;
+  }
+}
+
+/* Dark: a little less colour and light under the coat. */
+html[data-darkmode="true"] .backdrop-image {
+  filter: blur(var(--backdrop-blur, 48px)) saturate(0.7) brightness(0.8);
+}
+
+/* The coat has one floor, 86% in either mode, so the same setting shows
+   the picture alike in light and dark, and muted text keeps AA over any
+   picture: light's muted ink (#5d5d5d) still has 4.6:1 on white at 86%
+   over pure black. */
+.backdrop-coat {
+  @apply bg-background absolute inset-0 opacity-[max(.86,var(--backdrop-coat,.9))];
+}
+
+/* Over a picture the page is clear (the coat is its ground) and a
+   dialog (LuCI's modals) is one frosted surface. */
+html[data-backdrop] {
+  body {
+    @apply bg-transparent;
+  }
+
+  #modal_overlay > .modal {
+    @apply bg-elevated-a60;
+    backdrop-filter: blur(24px) saturate(1.4);
+  }
+
+  /* What a dialog's content takes the dialog fill for (cards, tables,
+     inputs: _modal.css) shows the frosted surface instead. */
+  #modal_overlay > .modal {
+    --dialog-bg: transparent;
+  }
+}

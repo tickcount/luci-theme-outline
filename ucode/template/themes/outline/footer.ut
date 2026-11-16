@@ -16,6 +16,47 @@
       L.require('menu-outline').then(function () {
         if (window.navigation) L.require('router-outline');
       });
+      /* The view's loader shimmers on the clock, as the sign-in page's
+         "Loading view…" does, so the line carries on from it -- here, and
+         each time LuCI.view puts a fresh one in (a load, a router swap). */
+      (function () {
+        var main = document.getElementById('maincontent');
+        var seen = null;
+        var sync = function () {
+          var el = document.querySelector('#view > .spinning:first-child');
+          if (!el || el === seen || !el.getAnimations) return;
+          seen = el;
+          el.getAnimations().forEach(function (a) {
+            if (a.animationName === 'outline-shimmer')
+              a.currentTime = (performance.timeOrigin + performance.now()) % 1800;
+          });
+        };
+        sync();
+        if (main) new MutationObserver(sync).observe(main, { childList: true, subtree: true });
+      })();
+      /* What the static site root (/www/outline.html) draws its card from;
+         sysauth.ut keeps the same keys. login.css is deployed with
+         main.css, so main's version names it too. */
+      try {
+        var sb = document.getElementById('sidebar');
+        var main = document.querySelector('link[data-luci-shell][href*="/main.css"]');
+        var palette = document.getElementById('outline-appearance');
+        /* The root's "came from me" mark is the login's; landing in LuCI
+           with a session, nothing takes it, so it must not wait here for
+           a later login in this tab. */
+        sessionStorage.removeItem('outline.from-root');
+        localStorage.setItem('outline.dark', document.documentElement.getAttribute('data-darkmode') || 'false');
+        if (sb) {
+          localStorage.setItem('outline.host', sb.getAttribute('data-hostname'));
+          localStorage.setItem('outline.logo', sb.getAttribute('data-logo'));
+        }
+        if (main) localStorage.setItem('outline.css', main.getAttribute('href').replace('/main.css', '/login.css'));
+        if (palette) localStorage.setItem('outline.appearance', palette.textContent);
+        /* The backdrop as rendered (picture, blur, coat, position). */
+        var bd = document.getElementById('outline-backdrop');
+        if (bd && document.documentElement.hasAttribute('data-backdrop')) localStorage.setItem('outline.backdrop', bd.outerHTML);
+        else localStorage.removeItem('outline.backdrop');
+      } catch (e) {}
     </script>
     {% endif %}
   </body>

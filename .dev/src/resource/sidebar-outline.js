@@ -26,7 +26,7 @@ return baseclass.extend({
     this.initTheme();
     this.initSidebar();
     this.initMobileDrawer();
-    this.initThemeToggle();
+    this.initThemeFollow();
     this.initTabReveal();
     this.initDropdownClamp();
   },
@@ -141,14 +141,9 @@ return baseclass.extend({
     keep || localStorage.setItem(THEME_KEY, theme);
   },
 
-  initThemeToggle() {
-    const btn = document.getElementById("theme-toggle-btn");
-    if (!btn) return;
-    btn.addEventListener("click", () => {
-      const isDark =
-        document.documentElement.getAttribute("data-darkmode") === "true";
-      this.applyTheme(isDark ? "light" : "dark");
-    });
+  /* The mode is picked in Appearance or the palette (⌘K); on Automatic it
+     follows the system scheme as it changes. */
+  initThemeFollow() {
     window
       .matchMedia("(prefers-color-scheme: dark)")
       .addEventListener("change", () =>
@@ -201,6 +196,21 @@ return baseclass.extend({
 
     this._initAccordion();
     this._initCollapsedPopover();
+
+    // Synara's shortcut: ⌘B / Ctrl+B folds a desktop sidebar to its rail.
+    document.addEventListener("keydown", (e) => {
+      if (
+        (e.metaKey || e.ctrlKey) &&
+        !e.altKey &&
+        !e.shiftKey &&
+        (e.key || "").toLowerCase() == "b" &&
+        document.documentElement.dataset.nav == "sidebar" &&
+        !this._mobileQuery.matches
+      ) {
+        e.preventDefault();
+        this.toggleCollapse();
+      }
+    });
 
     // Navbar: room the pill row needs either side of the centre, so the
     // side pills leave the content column's edge only when they must; a
@@ -268,7 +278,8 @@ return baseclass.extend({
   /* ── Collapsed hover popover ── */
 
   // Page lists pop over the rail when the panel is not there to show them:
-  // a collapsed sidebar, or the navbar layout (Appearance › Navigation).
+  // a collapsed sidebar, or a navbar -- pills or bar (Appearance ›
+  // Navigation).
   _pops() {
     return (
       document.getElementById("sidebar")?.getAttribute("data-collapsed") ==
@@ -377,15 +388,23 @@ return baseclass.extend({
     const sidebarRect = sidebar.getBoundingClientRect();
     const itemRect = railItem.getBoundingClientRect();
 
-    // As a navbar the list drops under its section's pill.
+    railItem.classList.add("is-open");
+
+    // In a navbar the list hangs 6px under the capsule (pills) or the bar's
+    // rule from its section's left edge (rows on its icon or label),
+    // flipped only when it would leave the window.
     if (this._navbar()) {
+      const bar = railItem.parentElement.getBoundingClientRect();
+      const fits = itemRect.left - 4 + popover.offsetWidth <= innerWidth - 24;
       popover.style.left =
-        Math.min(itemRect.left, innerWidth - popover.offsetWidth - 8) + "px";
-      popover.style.top = itemRect.bottom + 8 + "px";
+        (fits ? itemRect.left - 4 : itemRect.right - popover.offsetWidth) +
+        "px";
+      popover.style.top = Math.max(itemRect.bottom, bar.bottom) + 6 + "px";
       return;
     }
 
-    popover.style.left = sidebarRect.right + 4 + "px";
+    // 6px past the sidebar's edge, never on its seam.
+    popover.style.left = sidebarRect.right + 6 + "px";
 
     const top = Math.min(
       itemRect.top,
@@ -398,6 +417,9 @@ return baseclass.extend({
     clearTimeout(this._popoverTimer);
     const el = document.getElementById("sidebar-collapsed-popover");
     if (el) el.remove();
+    document
+      .querySelectorAll(".sidebar-rail-item.is-open")
+      .forEach((a) => a.classList.remove("is-open"));
   },
 
   /* ── Rail: pick the section the panel shows ── */
@@ -406,6 +428,21 @@ return baseclass.extend({
     document.addEventListener("click", (e) => {
       if (!e.target.closest("#sidebar-collapsed-popover"))
         this._hideCollapsedPopover();
+
+      // A section row folds its pages -- the desktop sidebar's and the
+      // phone drawer's (delegated: the cache-restored markup has no
+      // handlers).
+      const label = e.target.closest("#sidebar button.sidebar-group-label");
+      if (label) {
+        const group = label.parentElement;
+        const open = group.dataset.open != "true";
+        group.dataset.open = open;
+        // Opened by hand: kept open across pages (menu-outline.js).
+        group.toggleAttribute("data-user", open);
+        label.setAttribute("aria-expanded", open);
+        return;
+      }
+
       const rail = e.target.closest(".sidebar-rail-item");
       if (!rail) return;
       const sidebar = document.getElementById("sidebar");

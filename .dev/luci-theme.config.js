@@ -4,7 +4,21 @@
 export default {
   name: "outline", // media dir (/luci-static/outline) + ucode theme dir
   css: ["main", "login"], // src/media/<e>.css → /luci-static/outline/<e>.css
-  resources: ["menu-outline", "sidebar-outline"], // served at /luci-static/resources/<m>.js in dev
+  // served at /luci-static/resources/<m>.js in dev: the shell's modules and
+  // the theme's settings (embedded in System › Language and Style) with
+  // their helpers
+  resources: [
+    "menu-outline",
+    "sidebar-outline",
+    "outline/appearance",
+    "outline/package",
+    "outline/brand",
+    "outline/icons",
+    "outline/palette",
+    "outline/presets",
+    "outline/share",
+    "outline/ui",
+  ],
   assets: { dir: "public/outline", only: /^icons\/[^/]+\.svg$/ }, // only icons served in dev
   patchAliases: {},
 };

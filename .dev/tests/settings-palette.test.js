@@ -255,3 +255,26 @@ test("content width emits a bounded override and keeps the default implicit", ()
     assert.equal(P.assemble({ content_width: width }, variants), "");
   }
 });
+
+// Appearance › Navigation: header.ut resolves the stored style with its own
+// copy of the page's style → kind map; a style one side doesn't know would
+// render a different layout from the one the page previewed.
+test("header.ut and the Appearance page share the navigation styles", async () => {
+  const { readFileSync } = await import("node:fs");
+  const { root, resource } = await import("./settings-load.js");
+  const mapOf = (src) =>
+    new Function(`return ${src.match(/const NAV_KIND = (\{[^}]*\})/)[1]}`)();
+  const header = readFileSync(
+    `${root}/ucode/template/themes/outline/header.ut`,
+    "utf8",
+  );
+  const page = readFileSync(resource("outline/appearance.js"), "utf8");
+  assert.deepEqual(mapOf(header), mapOf(page));
+  assert.deepEqual(Object.keys(mapOf(page)).sort(), [
+    "bar",
+    "docked",
+    "floating",
+    "inset",
+    "pills",
+  ]);
+});

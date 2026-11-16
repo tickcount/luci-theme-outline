@@ -62,7 +62,7 @@ Install or upgrade on the router (OpenWrt 24.10 with opkg, or 25.12 with apk):
 wget -qO- https://raw.githubusercontent.com/$REPO/master/install.sh | sh
 \`\`\`
 
-Or update from LuCI → System › Outline Theme › Package.
+Or update from LuCI → System › System › Language and Style.
 EOF
 if [ -n "$PREV" ]; then
 	printf '\n**Full Changelog**: https://github.com/%s/compare/%s...%s\n' "$REPO" "$PREV" "$TAG"

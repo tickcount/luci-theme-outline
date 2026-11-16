@@ -1,0 +1,44 @@
+#!/bin/sh
+# shellcheck shell=dash
+# luci-theme-outline: keep the site root (/) in step with the active theme.
+#
+# Outline active: /www/outline.html (the "Redirecting" card) is uhttpd's
+# first index page. Any other theme, or the page gone: it is taken out of
+# the list and luci-base's index.html answers / again.
+#
+# Run by /etc/init.d/luci-theme-outline on every change to /etc/config/luci
+# (a theme switch in LuCI), at install (uci-defaults) and by the package job
+# before it removes the theme.
+
+PAGE=outline.html
+
+want=0
+[ "$(uci -q get luci.main.mediaurlbase)" = /luci-static/outline ] &&
+	[ -f "/www/$PAGE" ] && want=1
+
+idx="$(uci -q get uhttpd.main.index_page)"
+case " $idx " in
+	*" $PAGE "*) have=1 ;;
+	*) have=0 ;;
+esac
+[ "$want" = "$have" ] && exit 0
+
+# -I replaces uhttpd's built-in index list, so the defaults stay listed
+# after the page, and come back on their own when nothing else is left.
+rest=""
+for p in $idx; do
+	[ "$p" = "$PAGE" ] || rest="$rest $p"
+done
+[ -n "$rest" ] || rest="index.html index.htm default.html default.htm"
+
+uci -q delete uhttpd.main.index_page
+[ "$want" = 1 ] && uci add_list uhttpd.main.index_page="$PAGE"
+for p in $rest; do
+	uci add_list uhttpd.main.index_page="$p"
+done
+uci commit uhttpd
+
+# Deferred: the request that switched the theme, or the package manager,
+# may still be talking through uhttpd.
+( sleep 3; /etc/init.d/uhttpd reload ) >/dev/null 2>&1 &
+exit 0

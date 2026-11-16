@@ -4,3 +4,10 @@
 :root {
   view-transition-name: none;
 }
+
+/* The one exception is arriving from the login (sysauth.ut): both documents
+   opt in, and the login names only its card, so the card leaves over the
+   loaded page. Between LuCI pages nothing is named and nothing animates. */
+@view-transition {
+  navigation: auto;
+}

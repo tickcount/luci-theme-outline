@@ -196,14 +196,6 @@ button.cmdk-trigger {
   }
 }
 
-/* Header icons in tertiary ink. */
-#sidebar .sidebar-header img.outline-icon {
-  @apply opacity-50;
-}
-#sidebar .sidebar-header button:hover img.outline-icon {
-  @apply opacity-100;
-}
-
 /* ── Panel nav ────────────────────────────────────────────────────── */
 
 .sidebar-nav {
@@ -230,26 +222,6 @@ a.sidebar-nav-parent {
   }
 }
 
-.sidebar-nav-item.active > .sidebar-nav-parent {
-  @apply bg-sidebar-active-bg;
-}
-
-/* The panel lists one section at a time — the one picked on the rail
-   (menu-outline.js / sidebar-outline.js mark it .is-shown). */
-.sidebar-nav > [data-section]:not(.is-shown) {
-  @apply hidden;
-}
-
-/* Group label ("Projects", "Recents"): 14/18 medium tertiary ink, 36px;
-   it names the section shown. */
-.sidebar-group-label {
-  @apply text-text-tertiary mx-1.5 flex h-9 shrink-0 items-center px-1 py-0.5 text-sm leading-[18px] font-medium;
-
-  .sidebar-label {
-    @apply truncate;
-  }
-}
-
 /* 2px between rows (here and in the collapsed rail's popover): hover and
    the current page share one fill, so flush rows would read as a single
    tall pill when they sit next to each other. */
@@ -260,10 +232,6 @@ a.sidebar-nav-parent {
 
 .sidebar-sub-item {
   @apply m-0;
-
-  &.active .sidebar-sub-link {
-    @apply bg-sidebar-active-bg;
-  }
 }
 
 /* Page row (ChatGPT's "Recents" row): 36px, 10px inset, 14/20 at 85% ink,
@@ -395,11 +363,6 @@ button.topbar-icon-btn {
   img {
     @apply size-[18px] shrink-0;
   }
-}
-
-html[data-darkmode="true"] #theme-toggle-btn .theme-icon-light,
-html:not([data-darkmode="true"]) #theme-toggle-btn .theme-icon-dark {
-  @apply hidden;
 }
 
 .topbar-indicators {
@@ -577,6 +540,8 @@ html:not([data-darkmode="true"]) #theme-toggle-btn .theme-icon-dark {
   /* Absolute, not fixed: iOS Safari 26 tints its bars from edge-touching
      fixed elements' background-color, opacity notwithstanding. */
   @apply bg-scrim pointer-events-none absolute inset-0 z-30 opacity-0 [transition:opacity_.2s] md:hidden;
+  /* The page behind the open drawer goes soft as well as dark. */
+  backdrop-filter: blur(6px);
 
   &.active {
     @apply pointer-events-auto opacity-100;
@@ -642,6 +607,116 @@ html:not([data-darkmode="true"]) #theme-toggle-btn .theme-icon-dark {
 }
 
 html[data-nav="navbar"] {
+  /* Shared by both navbar styles (pills, bar) and their phone layout: the
+     top bar floats over the page as pills, the drawer's burger last. */
+  .topbar-brand,
+  .topbar-hamburger,
+  .topbar-indicators span[data-indicator] {
+    @apply bg-elevated-a60 border-foreground-a5 pointer-events-auto border shadow-sm backdrop-blur-xl;
+  }
+
+  /* Labels are visible: no tooltips on the brand and the sections. */
+  .sidebar-rail-home::after,
+  .sidebar-rail-item::after {
+    @apply md:hidden;
+  }
+
+  /* No panel: its page lists drop from the sections instead. */
+  #sidebar .sidebar-panel,
+  .sidebar-header {
+    @apply md:contents;
+  }
+
+  .sidebar-nav,
+  .sidebar-brand,
+  #sidebar-toggle-btn {
+    @apply md:hidden;
+  }
+
+  .sidebar-rail-sep {
+    @apply md:hidden;
+  }
+
+  /* Over the scroll blur (z-20), under the phone drawer's overlay (z-30). */
+  .card-header {
+    @apply pointer-events-none fixed inset-x-3 top-3 z-[25] h-10 gap-2 bg-transparent p-0;
+  }
+
+  /* Phones: the left group dissolves so its pieces order with the right
+     one -- brand, then the indicators, the burger last. */
+  .card-header-left {
+    @apply max-md:contents md:hidden;
+  }
+
+  .topbar-breadcrumb {
+    @apply hidden;
+  }
+
+  .topbar-brand {
+    @apply max-md:flex;
+  }
+
+  .card-header-right {
+    @apply ml-auto;
+  }
+
+  .topbar-hamburger {
+    @apply order-1 size-10 rounded-full;
+  }
+
+  .card-header-right,
+  .topbar-indicators {
+    @apply gap-2;
+  }
+
+  .topbar-indicators span[data-indicator] {
+    @apply size-10;
+  }
+
+  .content-card {
+    @apply md:border-l-0;
+  }
+
+  #maincontent {
+    @apply pt-20;
+  }
+
+  /* Once the page has scrolled (html[data-scrolled], sidebar-outline.js) a
+     progressive blur eases in behind the pills: three stacked backdrop
+     layers (2 / 6 / 12px), each masked a little shorter, so the blur is
+     strongest at the very top and thins out over 120px -- a gradient, not a
+     band -- with the page colour fading in over the top of it. Text passing
+     under the pills never collides with their labels. */
+  #main-wrapper::before,
+  #main-wrapper::after,
+  .content-card::before {
+    @apply pointer-events-none fixed inset-x-0 top-0 z-20 h-30 opacity-0 content-[''] [transition:opacity_.5s_cubic-bezier(.4,0,.2,1)];
+  }
+
+  #main-wrapper::before {
+    @apply [mask-image:linear-gradient(#000_45%,transparent)] backdrop-blur-[2px];
+  }
+
+  .content-card::before {
+    @apply [mask-image:linear-gradient(#000_25%,transparent_75%)] backdrop-blur-[6px];
+  }
+
+  #main-wrapper::after {
+    @apply bg-[linear-gradient(var(--background),transparent)] [mask-image:linear-gradient(#000_10%,transparent_55%)] backdrop-blur-[12px];
+  }
+
+  &[data-scrolled] {
+    #main-wrapper::before,
+    #main-wrapper::after,
+    .content-card::before {
+      @apply opacity-100;
+    }
+  }
+}
+
+/* Pills (Appearance › Navigation): the rail along the top as floating
+   pills on desktop. */
+html[data-nav-style="pills"] {
   /* The side pills line up with the content column (centred; its
      20px padding on narrower windows) -- unless the row needs more room:
      --nav-reserve (sidebar-outline.js) is half the section pill plus the
@@ -653,9 +728,9 @@ html[data-nav="navbar"] {
   }
 
   /* Floating surface shared by every pill: the sidebar's on desktop (a
-     drawer on phones), the top bar's at every width. Glass: the panel fill
-     at 60% over a 24px blur, so the page shows through, softened, edged
-     by the faintest ink hairline (5%, under the cards' 7.5%). */
+     drawer on phones). Glass: the panel fill at 60% over a 24px blur, so
+     the page shows through, softened, edged by the faintest ink hairline
+     (5%, under the cards' 7.5%). */
   .sidebar-rail-home,
   .sidebar-rail-nav,
   .sidebar-footer .sidebar-logout,
@@ -663,19 +738,8 @@ html[data-nav="navbar"] {
     @apply md:bg-elevated-a60 md:border-foreground-a5 md:pointer-events-auto md:border md:shadow-sm md:backdrop-blur-xl;
   }
 
-  .topbar-brand,
-  .topbar-hamburger,
-  .topbar-indicators span[data-indicator],
-  #theme-toggle-btn {
-    @apply bg-elevated-a60 border-foreground-a5 pointer-events-auto border shadow-sm backdrop-blur-xl;
-  }
-
   .sidebar-rail {
     @apply md:pointer-events-none md:absolute md:top-3 md:left-(--nav-edge) md:h-10 md:w-auto md:flex-row md:items-center md:gap-2 md:border-r-0 md:p-0;
-  }
-
-  .sidebar-rail-sep {
-    @apply md:hidden;
   }
 
   /* Brand pill: logo and hostname, the logo's ink and the text's ink
@@ -716,12 +780,6 @@ html[data-nav="navbar"] {
     }
   }
 
-  /* Labels are visible: no tooltips on the brand and the sections. */
-  .sidebar-rail-home::after,
-  .sidebar-rail-item::after {
-    @apply md:hidden;
-  }
-
   /* The row doesn't fit with labels (sidebar-outline.js): the sections go
      icon-only, a section's name heading its popover; the brand keeps its. */
   &[data-nav-compact] #sidebar .sidebar-rail-item {
@@ -730,19 +788,6 @@ html[data-nav="navbar"] {
     .sidebar-rail-label {
       @apply md:hidden;
     }
-  }
-
-  /* No panel: its page lists drop from the section pill instead. Only the
-     search button stays, as a pill on the right. */
-  #sidebar .sidebar-panel,
-  .sidebar-header {
-    @apply md:contents;
-  }
-
-  .sidebar-nav,
-  .sidebar-brand,
-  #sidebar-toggle-btn {
-    @apply md:hidden;
   }
 
   /* Right pills, from the edge: logout, search, then the top bar's. */
@@ -767,84 +812,15 @@ html[data-nav="navbar"] {
     }
   }
 
-  /* Over the scroll blur (z-20), under the phone drawer's overlay (z-30). */
   .card-header {
-    @apply pointer-events-none fixed inset-x-3 top-3 z-[25] h-10 gap-2 bg-transparent p-0 md:right-[calc(var(--nav-edge)+96px)] md:left-auto;
-  }
-
-  /* Phones: the left group dissolves so its pieces order with the right
-     one -- brand, then indicators and theme, the burger last. */
-  .card-header-left {
-    @apply max-md:contents md:hidden;
-  }
-
-  .topbar-breadcrumb {
-    @apply hidden;
-  }
-
-  .topbar-brand {
-    @apply max-md:flex;
-  }
-
-  .card-header-right {
-    @apply ml-auto;
-  }
-
-  .topbar-hamburger {
-    @apply order-1 size-10 rounded-full;
-  }
-
-  .card-header-right,
-  .topbar-indicators {
-    @apply gap-2;
-  }
-
-  .topbar-indicators span[data-indicator],
-  #theme-toggle-btn {
-    @apply size-10;
-  }
-
-  .content-card {
-    @apply md:border-l-0;
+    @apply md:right-[calc(var(--nav-edge)+96px)] md:left-auto;
   }
 
   /* Under the pills; the column still scrolls beneath them. The gutter is
      kept on both edges so the column centres on the page, under the
      section pill, whatever the scrollbar takes. */
   #maincontent {
-    @apply pt-20 md:[scrollbar-gutter:stable_both-edges] md:pt-24;
-  }
-
-  /* Once the page has scrolled (html[data-scrolled], sidebar-outline.js) a
-     progressive blur eases in behind the pills: three stacked backdrop
-     layers (2 / 6 / 12px), each masked a little shorter, so the blur is
-     strongest at the very top and thins out over 120px -- a gradient, not a
-     band -- with the page colour fading in over the top of it. Text passing
-     under the pills never collides with their labels. */
-  #main-wrapper::before,
-  #main-wrapper::after,
-  .content-card::before {
-    @apply pointer-events-none fixed inset-x-0 top-0 z-20 h-30 opacity-0 content-[''] [transition:opacity_.5s_cubic-bezier(.4,0,.2,1)];
-  }
-
-  #main-wrapper::before {
-    @apply [mask-image:linear-gradient(#000_45%,transparent)] backdrop-blur-[2px];
-  }
-
-  .content-card::before {
-    @apply [mask-image:linear-gradient(#000_25%,transparent_75%)] backdrop-blur-[6px];
-  }
-
-  #main-wrapper::after {
-    @apply bg-[linear-gradient(var(--background),transparent)] [mask-image:linear-gradient(#000_10%,transparent_55%)] backdrop-blur-[12px];
-  }
-
-  &[data-scrolled] {
-    #main-wrapper::before,
-    #main-wrapper::after,
-    .content-card::before {
-      @apply opacity-100;
-    }
+    @apply md:[scrollbar-gutter:stable_both-edges] md:pt-24;
   }
 }
 
@@ -853,8 +829,7 @@ html[data-nav="navbar"] {
   html[data-nav="sidebar"] {
     .topbar-brand,
     .topbar-hamburger,
-    .topbar-indicators span[data-indicator],
-    #theme-toggle-btn {
+    .topbar-indicators span[data-indicator] {
       @apply bg-elevated-a60 border-foreground-a5 pointer-events-auto border shadow-sm backdrop-blur-xl;
     }
 
@@ -864,7 +839,7 @@ html[data-nav="navbar"] {
     }
 
     /* Phones: the left group dissolves so its pieces order with the right
-       one -- brand, then indicators and theme, the burger last. */
+       one -- brand, then the indicators, the burger last. */
     .card-header-left {
       @apply contents;
     }
@@ -890,8 +865,7 @@ html[data-nav="navbar"] {
       @apply gap-2;
     }
 
-    .topbar-indicators span[data-indicator],
-    #theme-toggle-btn {
+    .topbar-indicators span[data-indicator] {
       @apply size-10;
     }
 

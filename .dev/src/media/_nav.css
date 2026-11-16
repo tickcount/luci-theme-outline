@@ -1,0 +1,850 @@
+/* ── Navigation styles ──────────────────────────────────────────────
+   Appearance › Navigation: html[data-nav] is the kind (sidebar | navbar),
+   html[data-nav-style] the layout -- docked, floating or inset for a
+   sidebar; pills or bar for a navbar. All desktop: phones keep a drawer
+   under the floating bar (_layout.css) whatever the layout -- the
+   sidebar's panel, alone.
+
+   After Synara's sidebar: one 256px panel (brand row, every section a
+   folding group with the current one open, logout at the foot); collapsed
+   (its button or ⌘B), the 52px icon rail, a section's pages on hover. One
+   row spec wherever pages are listed -- the panel, a rail or pill's page
+   list: 28px, 14px (13px in the navbars), 8px
+   radius, 8px inset, 2px apart; hover a faint ink fill, the current page a
+   firmer one in full ink. */
+
+/* ── Tones ──────────────────────────────────────────────────────────
+   Ink alphas from the palette (foreground-aNN), so every preset gets them.
+   Opaque grounds are the page colour with an ink tint laid over it. */
+
+html {
+  --nav-hover: var(--foreground-a4);
+  --nav-selected: var(--foreground-a8);
+  --nav-row: var(--foreground-a78);
+  --nav-section: var(--foreground-a95);
+  /* One chrome hairline per mode (seams, rings, the bar's rule); page
+     lists that pop use a lighter one in light. */
+  --nav-line: var(--foreground-a10);
+  --nav-pop-line: var(--foreground-a7);
+  --nav-hair: 1px;
+  /* The docked sidebar's shade and the inset layout's ground. */
+  --nav-tint: linear-gradient(var(--foreground-a2), var(--foreground-a2));
+  --nav-ground: linear-gradient(var(--foreground-a3), var(--foreground-a3));
+  --nav-pop-shadow:
+    0 1px 2px rgb(0 0 0 / 0.05), 0 8px 24px -8px rgb(0 0 0 / 0.12);
+  --nav-card-shadow: 0 1px 2px rgb(0 0 0 / 0.06), 0 4px 12px rgb(0 0 0 / 0.05);
+
+  /* Dark: the shades lift off the page instead; hairlines one step firmer
+     so they read on a pure-black preset too. */
+  &[data-darkmode="true"] {
+    --nav-hover: var(--foreground-a3);
+    --nav-selected: var(--foreground-a9);
+    --nav-line: var(--foreground-a14);
+    /* Page lists edge like the cards: the palette's border, which
+       Contrast sets. */
+    --nav-pop-line: var(--border);
+    --nav-tint: linear-gradient(var(--foreground-a4), var(--foreground-a4));
+    --nav-ground: linear-gradient(var(--foreground-a8), var(--foreground-a8));
+    --nav-pop-shadow: 0 6px 24px -10px rgb(0 0 0 / 0.35);
+    --nav-card-shadow:
+      0 1px 2px rgb(0 0 0 / 0.3), 0 8px 24px -8px rgb(0 0 0 / 0.5);
+  }
+}
+
+/* Hairlines one device pixel on dense screens. */
+@media (min-resolution: 2dppx) {
+  html {
+    --nav-hair: 0.5px;
+  }
+}
+
+/* Nodes only some layouts show (menu-outline.js builds them all). */
+.sidebar-panel-foot,
+.sidebar-brand > .sidebar-logo,
+.sidebar-group-icon,
+.sidebar-group-chevron,
+.sidebar-rail-search {
+  @apply hidden;
+}
+
+/* Light: idle section icons quieter than the current, open or hovered one. */
+html:not([data-darkmode="true"]) #sidebar .sidebar-rail-item {
+  img.outline-icon {
+    @apply opacity-[.66];
+  }
+
+  &:is(.active, .is-shown, .is-open, :hover) img.outline-icon {
+    @apply opacity-100;
+  }
+}
+
+/* ── Page lists that pop (collapsed rail, pills, bar) ───────────────
+   Frosted like the dialogs: the card colour at 60% over a 24px blur, so
+   what lies under it shows only as colour. A 14px card with 6px padding,
+   the 8px rows concentric in it; the heading 12px medium, muted. */
+
+.sidebar-collapsed-popover {
+  @apply bg-elevated-a60 min-w-56 rounded-[14px] border border-(--nav-pop-line) p-1.5;
+  box-shadow: var(--nav-pop-shadow);
+  backdrop-filter: blur(24px) saturate(1.4);
+}
+
+.sidebar-collapsed-popover-title {
+  @apply text-muted-foreground mb-0.5 px-2 pt-1.5 pb-1 text-xs leading-4 font-medium;
+}
+
+/* Rows a touch roomier than the panel's: 32px, 10px inset. */
+.sidebar-collapsed-popover-link {
+  @apply h-8 rounded-lg px-2.5 text-sm leading-5 text-(--nav-row);
+
+  &:hover {
+    @apply bg-(--nav-hover);
+  }
+
+  &.active {
+    @apply text-foreground bg-(--nav-selected);
+  }
+}
+
+/* In a navbar the section's own label names the list. */
+html[data-nav="navbar"] .sidebar-collapsed-popover-title {
+  @apply hidden;
+}
+
+/* A page list's trigger while the list is open: full ink, no fill (the
+   list itself marks it); hover keeps its fill. */
+#sidebar .sidebar-rail-item.is-open:not(.active, .is-shown) {
+  @apply text-foreground;
+
+  &:not(:hover) {
+    @apply bg-transparent;
+  }
+
+  img {
+    @apply opacity-100;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   SIDEBARS
+   ════════════════════════════════════════════════════════════════════ */
+
+@media (width >= 48rem) {
+  html[data-nav="sidebar"] {
+    #sidebar {
+      @apply w-64;
+    }
+
+    /* Synara's slide: 300ms, cubic-bezier(.32,.72,0,1). */
+    &[data-sidebar-anim] #sidebar {
+      @apply [transition:width_.3s_cubic-bezier(.32,.72,0,1)];
+    }
+
+    .sidebar-rail {
+      @apply hidden;
+    }
+  }
+
+  /* A navbar dissolves the panel (_layout.css) and keeps only its search,
+     which stays a pill: no panel foot, the rail's glyph. */
+  html[data-nav="navbar"] .sidebar-panel-foot {
+    @apply hidden;
+  }
+
+  html[data-nav-style="pills"] #sidebar button.cmdk-trigger img {
+    @apply size-5 opacity-50;
+  }
+}
+
+/* Phones: the drawer is the panel alone, whatever the layout -- no rail,
+   nothing to collapse. */
+@media (width < 48rem) {
+  .sidebar-rail,
+  #sidebar-toggle-btn {
+    @apply hidden;
+  }
+}
+
+/* The panel: the desktop sidebar's and every phone drawer's. */
+html {
+  /* Title row, 52px: the top bar's height, so the brand and the
+       breadcrumb share a centre line. Buttons 6px from the edge, like the
+       rows. */
+  .sidebar-header {
+    @apply mt-0 h-13 gap-1.5 px-1.5 py-2.5;
+  }
+
+  /* On the row grid: the logo centred over the section icons, the name
+       on the rows' text edge. */
+  .sidebar-brand {
+    @apply mr-auto h-8 flex-[0_1_auto] gap-1.5 rounded-lg pr-2 pl-1.5 [transition:background-color_.15s];
+
+    &:hover {
+      @apply bg-(--nav-hover);
+    }
+
+    > .sidebar-logo {
+      @apply block;
+    }
+  }
+
+  /* Synara's title is 17px in a display face; Geist semibold stands in. */
+  .sidebar-brand-text {
+    @apply text-foreground tracking-normal;
+  }
+
+  .sidebar-icon-btn,
+  button.cmdk-trigger {
+    @apply size-7 rounded-lg;
+
+    &:hover {
+      @apply bg-(--nav-hover);
+    }
+
+    img {
+      @apply size-[18px];
+    }
+  }
+
+  #sidebar .sidebar-header img.outline-icon {
+    @apply opacity-[.62] dark:opacity-50;
+  }
+
+  #sidebar .sidebar-header button:hover img.outline-icon {
+    @apply opacity-100;
+  }
+
+  /* Every section listed; the list scrolls under a short fade. */
+  .sidebar-nav {
+    @apply gap-0.5 [mask-image:linear-gradient(#000_calc(100%-24px),transparent)] px-1.5 pt-1 pb-7;
+  }
+
+  .sidebar-nav > [data-section]:not(.is-shown) {
+    @apply block;
+  }
+
+  /* A section: icon, name, the chevron right after it (down open, right
+       folded). Regular weight like Synara's project rows; set apart by the
+       icon, the chevron and the pages' indent. */
+  button.sidebar-group-label,
+  a.sidebar-nav-parent {
+    @apply m-0 flex h-7 w-full cursor-pointer items-center justify-start gap-2 rounded-lg px-2 py-0 text-sm leading-5 font-normal text-(--nav-section) [transition:color_.15s,background-color_.15s];
+
+    &:hover {
+      @apply bg-(--nav-hover);
+    }
+
+    &:focus-visible {
+      @apply outline-ring outline-2 -outline-offset-2;
+    }
+
+    .sidebar-label {
+      @apply min-w-0 flex-[0_1_auto] truncate;
+    }
+  }
+
+  a.sidebar-nav-parent .sidebar-icon,
+  a.sidebar-nav-parent .sidebar-icon img,
+  #sidebar .sidebar-group-icon {
+    @apply mx-px block size-[15px] flex-none opacity-90;
+  }
+
+  #sidebar .sidebar-group-chevron {
+    @apply -ml-1 flex rotate-90 [transition:rotate_.22s_ease-out];
+
+    img {
+      @apply size-3.5 opacity-[.62];
+    }
+  }
+
+  #sidebar [data-open="false"] > .sidebar-group-label .sidebar-group-chevron {
+    @apply rotate-0;
+  }
+
+  :is(.sidebar-accordion-item, .sidebar-nav-item).active
+    > :is(.sidebar-group-label, .sidebar-nav-parent) {
+    @apply text-foreground;
+  }
+
+  .sidebar-nav-item.active > .sidebar-nav-parent {
+    @apply bg-(--nav-selected);
+  }
+
+  &:not([data-darkmode="true"])
+    .sidebar-accordion-item:not(.active)
+    > .sidebar-group-label:not(:hover)
+    .sidebar-group-icon {
+    @apply opacity-[.66];
+  }
+
+  /* Fold: grid rows 1fr -> 0fr, the list clipped by its wrapper. */
+  .sidebar-accordion-sub {
+    @apply grid grid-rows-[1fr] overflow-hidden [transition:grid-template-rows_.22s_ease-out];
+
+    > ul {
+      @apply min-h-0 gap-0.5 overflow-hidden pt-0.5 pb-2 [transition:opacity_.22s_ease-out,translate_.22s_ease-out,padding_.22s_ease-out];
+    }
+  }
+
+  [data-open="false"] > .sidebar-accordion-sub {
+    @apply grid-rows-[0fr];
+
+    > ul {
+      @apply translate-y-[-4px] p-0 opacity-0;
+    }
+  }
+
+  /* Pages, on the name's edge. */
+  .sidebar-sub-link {
+    @apply h-7 py-1 pr-2 pl-8 text-sm leading-5 text-(--nav-row);
+
+    &:hover {
+      @apply bg-(--nav-hover);
+    }
+  }
+
+  .sidebar-sub-item.active .sidebar-sub-link {
+    @apply text-foreground bg-(--nav-selected);
+  }
+
+  /* Log out, a labelled row at the panel's foot (no rule: Synara's foot
+       has none). */
+  .sidebar-panel-foot {
+    @apply block p-1.5;
+  }
+
+  .sidebar-foot-link {
+    @apply flex h-7 items-center gap-2 rounded-lg px-2 text-sm leading-5 text-(--nav-row) no-underline;
+
+    img {
+      @apply mx-px size-[15px] opacity-[.78] dark:opacity-90;
+    }
+
+    &:hover {
+      @apply text-foreground bg-(--nav-hover) no-underline;
+    }
+  }
+}
+
+/* Rows a finger can hit in the phone drawer: 36px, as the drawer had. */
+@media (width < 48rem) {
+  html
+    #sidebar
+    :is(
+      button.sidebar-group-label,
+      a.sidebar-nav-parent,
+      .sidebar-sub-link,
+      .sidebar-foot-link
+    ) {
+    @apply h-9 py-2;
+  }
+}
+
+@media (width >= 48rem) {
+  html[data-nav="sidebar"] {
+    /* Collapsed: the icon rail -- 36px tiles 6px apart, 20px glyphs, the
+       current section filled like a current page; search under the logo. */
+    &[data-sidebar-collapsed="true"] {
+      #sidebar {
+        @apply w-13;
+      }
+
+      .sidebar-rail {
+        @apply flex gap-1.5 border-r-0 pt-2;
+      }
+
+      .sidebar-rail-nav {
+        @apply gap-1.5;
+      }
+
+      .sidebar-rail-sep {
+        @apply mx-auto my-0.5 w-5 bg-(--nav-line);
+      }
+
+      .sidebar-footer::before {
+        @apply mx-auto mt-0.5 mb-1.5 block h-px w-5 bg-(--nav-line) content-[''];
+      }
+
+      .sidebar-rail-item,
+      .sidebar-rail-home,
+      .sidebar-footer .sidebar-logout,
+      .sidebar-rail-search {
+        @apply rounded-[10px];
+
+        &:hover {
+          @apply bg-(--nav-hover);
+        }
+
+        img {
+          @apply size-5 min-w-5 flex-none;
+        }
+      }
+
+      #sidebar .sidebar-rail-item.active {
+        @apply bg-(--nav-selected);
+      }
+
+      .sidebar-rail-search {
+        @apply flex size-9 shrink-0 cursor-pointer items-center justify-center border-0 bg-transparent p-0;
+
+        img {
+          @apply opacity-[.66] dark:opacity-50;
+        }
+      }
+
+      &:not([data-darkmode="true"]) #sidebar .sidebar-logout img {
+        @apply opacity-[.66];
+      }
+    }
+  }
+
+  /* ── 1 · Docked: full height, a shade off the page, a hairline seam ─ */
+
+  html[data-nav-style="docked"] {
+    #sidebar {
+      @apply bg-background;
+      background-image: var(--nav-tint);
+      box-shadow: inset calc(var(--nav-hair) * -1) 0 0 var(--nav-line);
+    }
+
+    .content-card {
+      @apply border-l-0;
+    }
+  }
+
+  /* ── 2 · Floating: the sidebar is a card on the page ─────────────── */
+
+  html[data-nav-style="floating"] {
+    @apply bg-background;
+
+    /* Above the page, so its shadow and ring are not painted over. */
+    #sidebar {
+      @apply bg-background relative z-[1] my-2 ml-2 h-[calc(100%-16px)] rounded-xl;
+      box-shadow:
+        0 0 0 var(--nav-hair) var(--nav-line),
+        var(--nav-card-shadow);
+    }
+
+    /* In dark a shadow does not read on near-black: the panel is raised by
+       the lighter ground tone instead. */
+    &[data-darkmode="true"] #sidebar {
+      background-image: var(--nav-ground);
+    }
+
+    /* The top bar keeps the brand's centre line (8px lower). */
+    #main-wrapper {
+      @apply pt-2;
+    }
+
+    .sidebar-panel,
+    .sidebar-rail {
+      @apply rounded-[inherit];
+    }
+
+    .content-card {
+      @apply border-l-0;
+    }
+  }
+
+  /* ── 3 · Inset: the page is a card, the sidebar its ground ───────── */
+
+  html[data-nav-style="inset"] {
+    @apply bg-background;
+    background-image: var(--nav-ground);
+
+    #sidebar {
+      @apply bg-transparent;
+    }
+
+    /* Synara's block: 3px off the window's right and bottom edges, 12px
+       corners, a hairline ring, no shadow. */
+    #main-wrapper {
+      @apply pr-[3px] pb-[3px];
+    }
+
+    .content-card {
+      @apply relative border-0 bg-transparent;
+    }
+
+    /* The card is drawn behind the scroller: the band above it is the
+       ground, the breadcrumb sits on it. */
+    .content-card::before {
+      @apply bg-background pointer-events-none absolute inset-x-0 top-13 bottom-0 z-0 rounded-xl content-[''];
+      box-shadow: inset 0 0 0 var(--nav-hair) var(--nav-line);
+    }
+
+    .card-header {
+      @apply relative z-[1] bg-transparent;
+    }
+
+    /* Synara's short divider on the band, over the seam; gone collapsed. */
+    .card-header::before {
+      @apply absolute top-4 left-0 h-5 w-px bg-(--nav-line) content-[''];
+    }
+
+    &[data-sidebar-collapsed="true"] .card-header::before {
+      @apply hidden;
+    }
+
+    #maincontent {
+      @apply relative z-[1] rounded-xl;
+    }
+
+    /* Collapsed, the rail's list opens clear of the card's ring. */
+    &[data-sidebar-collapsed="true"] .sidebar-collapsed-popover {
+      @apply translate-x-1.5;
+    }
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   NAVBARS
+   ════════════════════════════════════════════════════════════════════ */
+
+@media (width >= 48rem) {
+  /* ── 4 · Pills: one ringless material, Synara's capsule ──────────── */
+
+  html[data-nav-style="pills"] {
+    /* The capsule: a borderless ink tint for the track, the current
+       segment a raised thumb; an even 4px around it. */
+    #sidebar .sidebar-rail-nav {
+      @apply bg-foreground-a5 dark:bg-foreground-a7 p-1;
+      border: 0;
+      box-shadow: none;
+    }
+
+    #sidebar .sidebar-rail-item {
+      @apply text-muted-foreground;
+
+      .sidebar-rail-label {
+        @apply text-[13px] font-medium;
+      }
+
+      /* An idle segment only changes its text on hover (Synara's capsule). */
+      &:hover,
+      &.is-open {
+        @apply text-foreground bg-transparent;
+      }
+
+      &.is-shown {
+        @apply bg-elevated text-foreground;
+        box-shadow: 0 1px 2px rgb(0 0 0 / 0.12);
+      }
+    }
+
+    &[data-darkmode="true"] #sidebar .sidebar-rail-item.is-shown {
+      box-shadow: 0 1px 2px rgb(0 0 0 / 0.3);
+      background-image: linear-gradient(
+        var(--foreground-a10),
+        var(--foreground-a10)
+      );
+    }
+
+    /* The round buttons and the brand pill: the capsule's material. */
+    :is(
+      .sidebar-rail-home,
+      .sidebar-footer .sidebar-logout,
+      #sidebar button.cmdk-trigger,
+      .topbar-indicators span[data-indicator]
+    ) {
+      @apply bg-foreground-a5 dark:bg-foreground-a7 border-transparent;
+      box-shadow: none;
+
+      &:hover {
+        @apply bg-foreground-a8 dark:bg-foreground-a10;
+      }
+    }
+
+    .sidebar-rail-home .sidebar-rail-label {
+      @apply text-[15px] font-semibold;
+    }
+
+    &:not([data-darkmode="true"])
+      :is(#sidebar button.cmdk-trigger, .sidebar-footer .sidebar-logout)
+      img {
+      @apply opacity-[.63];
+    }
+  }
+
+  /* ── 5 · Bar: one row across the top, pages drop under it ───────── */
+
+  html[data-nav-style="bar"] {
+    --bar-h: 48px;
+    --bar-pad: max(20px, calc(50% - var(--content-width, 920px) / 2));
+
+    #sidebar {
+      @apply bg-background fixed inset-x-0 top-0 z-30 block h-(--bar-h) w-auto overflow-visible;
+    }
+
+    /* The one chrome rule, under the bar; a section's pages drop under
+       it, as the pills' do. */
+    #sidebar::before {
+      @apply absolute inset-x-0 top-(--bar-h) h-(--nav-hair) bg-(--nav-line) content-[''];
+    }
+
+    .sidebar-rail {
+      @apply absolute top-0 right-[calc(var(--bar-pad)-8px)] left-(--bar-pad) h-(--bar-h) w-auto flex-row items-center gap-4 border-r-0 p-0;
+    }
+
+    .sidebar-rail-label {
+      @apply inline whitespace-nowrap;
+    }
+
+    .sidebar-rail-home {
+      @apply text-foreground -ml-1 h-8 w-auto gap-2 rounded-lg pr-2 pl-1;
+
+      &:hover {
+        @apply bg-(--nav-hover);
+      }
+
+      .sidebar-rail-label {
+        @apply text-[15px] leading-5 font-semibold;
+      }
+    }
+
+    .sidebar-rail-nav {
+      @apply h-full flex-row items-center gap-0.5;
+    }
+
+    /* Section tabs are 28px buttons: the current one filled like a
+       current page, a hovered one or one whose list is open the hover fill
+       with its label inked. */
+    #sidebar .sidebar-rail-item {
+      @apply text-muted-foreground relative h-7 w-auto gap-1.5 rounded-lg bg-transparent px-2.5 text-[13px] leading-5;
+
+      img {
+        @apply hidden;
+      }
+
+      &:is(:hover, .is-open) {
+        @apply text-foreground bg-(--nav-hover);
+      }
+
+      &.active {
+        @apply text-foreground bg-(--nav-selected);
+      }
+
+      /* Kept while the pointer is in the list (outranks the open
+         trigger's no-fill rule above). */
+      &.is-open:not(.active, .is-shown) {
+        @apply bg-(--nav-hover);
+      }
+    }
+
+    /* Right group, 32px squares 4px apart: indicators, search,
+       logout -- one idle tone, no pill material. */
+    .sidebar-footer {
+      @apply mt-0 ml-auto;
+    }
+
+    :is(
+      .sidebar-footer .sidebar-logout,
+      #sidebar button.cmdk-trigger,
+      .topbar-indicators span[data-indicator]
+    ) {
+      @apply text-muted-foreground size-8 rounded-lg bg-transparent;
+      border: 0;
+      box-shadow: none;
+      backdrop-filter: none;
+
+      &:hover {
+        @apply bg-(--nav-hover);
+      }
+    }
+
+    :is(.sidebar-footer .sidebar-logout, #sidebar button.cmdk-trigger) img {
+      @apply size-[18px] opacity-[.62];
+    }
+
+    #sidebar button.cmdk-trigger {
+      @apply absolute top-2 right-[calc(var(--bar-pad)+28px)];
+    }
+
+    .card-header {
+      @apply top-2 right-[calc(var(--bar-pad)+64px)] left-auto z-[31] h-8 gap-1;
+    }
+
+    .card-header-right,
+    .topbar-indicators {
+      @apply gap-1;
+    }
+
+    #maincontent {
+      @apply [scrollbar-gutter:stable_both-edges] pt-[calc(var(--bar-h)+32px)];
+    }
+
+    /* The bar is opaque: no scroll blur under it. */
+    #main-wrapper::before,
+    #main-wrapper::after,
+    .content-card::before {
+      @apply content-none;
+    }
+  }
+}
+
+/* Bar on phones: the same row, the drawer's burger at its end -- not the
+   pills' floating capsules. */
+@media (width < 48rem) {
+  html[data-nav-style="bar"] {
+    .card-header {
+      @apply bg-background pointer-events-auto inset-x-0 top-0 h-12 gap-1 px-4;
+      box-shadow: inset 0 calc(var(--nav-hair) * -1) 0 var(--nav-line);
+    }
+
+    .topbar-brand,
+    .topbar-hamburger,
+    .topbar-indicators span[data-indicator] {
+      @apply border-0 bg-transparent shadow-none;
+      backdrop-filter: none;
+
+      &:hover {
+        @apply bg-(--nav-hover);
+      }
+    }
+
+    .topbar-brand {
+      @apply -ml-1 h-8 rounded-lg pr-2 pl-1 text-[15px] font-semibold;
+    }
+
+    .topbar-hamburger,
+    .topbar-indicators span[data-indicator] {
+      @apply text-muted-foreground size-8 rounded-lg;
+    }
+
+    .card-header-right,
+    .topbar-indicators {
+      @apply gap-1;
+    }
+
+    #maincontent {
+      @apply pt-18;
+    }
+
+    /* Opaque: no scroll blur under it. */
+    #main-wrapper::before,
+    #main-wrapper::after,
+    .content-card::before {
+      @apply content-none;
+    }
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   BACKDROP -- a picture behind the whole window (Appearance › Backdrop),
+   Synara's whole-window glass with the picture where Synara has the
+   desktop: blurred once, one coat of the page colour over it, every
+   surface above clear, what is raised (cards, the floating sidebar) a thin
+   tint of the card colour. Chrome the page scrolls under, and page lists,
+   keep a dense fill.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* The picture itself: _backdrop.css (shared with the login page). */
+
+html[data-backdrop] {
+  /* Clear: the coat is the only ground. The phone drawer slides over the
+     page, so it keeps a dense frost. */
+  body,
+  #sidebar,
+  .content-card,
+  .card-header {
+    @apply bg-transparent bg-none;
+  }
+
+  /* Frosted like the dialogs (a raw blur: the utility compiles to a long
+     chain). */
+  @media (width < 48rem) {
+    #sidebar {
+      @apply bg-elevated-a90;
+      backdrop-filter: blur(24px) saturate(1.4);
+    }
+  }
+
+  /* A phone bar is clear at rest, a frost once the page scrolls under it. */
+  &[data-nav-style="bar"] .card-header {
+    @apply max-md:[transition:background-color_.2s];
+  }
+
+  &[data-nav-style="bar"][data-scrolled] .card-header {
+    @apply max-md:bg-elevated-a60;
+  }
+
+  /* Raised: cards, tables, charts -- everything on --panel-bg. Edges keep
+     the palette's border, so Contrast still sets them. */
+  body {
+    --panel-bg: var(--elevated-a60);
+    --terminal-bg: var(--elevated-a60);
+  }
+
+  &:not([data-darkmode="true"]) body {
+    --muted-foreground: #5e5e5e;
+  }
+}
+
+@media (width >= 48rem) {
+  html[data-backdrop] {
+    /* Floating: the raised tint and its ring; in dark a dense tint, since
+       a 60% one merges into the picture. */
+    &[data-nav-style="floating"] #sidebar {
+      @apply bg-elevated-a60 dark:bg-elevated-a90;
+    }
+
+    /* Inset: the page card keeps a tint of its own, so it differs from its
+       ground in tone, not only by its ring; in dark the ground lifts and
+       the card sinks. */
+    &[data-nav-style="inset"] {
+      @apply bg-none;
+
+      .content-card::before {
+        @apply bg-elevated-a60;
+      }
+
+      &[data-darkmode="true"] .content-card::before {
+        background-color: rgb(0 0 0 / 0.35);
+      }
+
+      &[data-darkmode="true"] body {
+        @apply bg-foreground-a4;
+      }
+    }
+
+    /* Pills: the capsule and buttons opaque (their ink tint over the page
+       colour), so idle labels keep AA at the coat floor. */
+    &[data-nav-style="pills"]
+      :is(
+        #sidebar .sidebar-rail-nav,
+        .sidebar-rail-home,
+        .sidebar-footer .sidebar-logout,
+        #sidebar button.cmdk-trigger,
+        .topbar-indicators span[data-indicator]
+      ) {
+      background-color: var(--background);
+      background-image: linear-gradient(
+        var(--foreground-a5),
+        var(--foreground-a5)
+      );
+    }
+
+    &[data-nav-style="pills"][data-darkmode="true"]
+      :is(
+        #sidebar .sidebar-rail-nav,
+        .sidebar-rail-home,
+        .sidebar-footer .sidebar-logout,
+        #sidebar button.cmdk-trigger,
+        .topbar-indicators span[data-indicator]
+      ) {
+      background-image: linear-gradient(
+        var(--foreground-a7),
+        var(--foreground-a7)
+      );
+    }
+
+    /* Bar: clear at rest, a frost once the page scrolls under it. */
+    &[data-nav-style="bar"] #sidebar {
+      @apply [transition:background-color_.2s];
+    }
+
+    &[data-nav-style="bar"][data-scrolled] #sidebar {
+      @apply bg-elevated-a60 backdrop-blur-xl;
+    }
+  }
+}

@@ -155,6 +155,11 @@ const CSS = `
 .ot-picks.sm .ot-pick-check{width:16px;height:16px;top:-5px;right:-5px}
 .ot-picks.sm .ot-pick-check .ot-icon{width:10px;height:10px}
 .ot-picks.sm .ot-pick.add .ot-pick-face .ot-icon{width:18px;height:18px}
+.ot-pick-face.cover img{width:calc(100% - 6px);height:calc(100% - 6px);object-fit:cover;border-radius:15px}
+.ot-picks.sm .ot-pick-face.cover img{width:calc(100% - 6px);height:calc(100% - 6px);border-radius:9px}
+.ot-pick.none .ot-pick-face .ot-icon{width:18px;height:18px;color:var(--ot-faint)}
+.ot-mode-name{font-size:var(--text-xs,12px);line-height:16px;color:var(--ot-muted)}
+.ot-mode input:checked~.ot-mode-name{color:var(--ot-text)}
 .ot-pop{position:fixed;z-index:10000;min-width:160px;padding:4px;border-radius:14px;background:var(--ot-pop);color:var(--ot-text);box-shadow:var(--ot-shadow);border:1px solid var(--ot-line);font-size:var(--text-sm,14px)}
 .ot-pop.wide{width:240px}
 .ot-pop.narrow{width:208px}
@@ -191,6 +196,7 @@ const ICONS = {
   image:
     '<rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/>',
   plus: '<path d="M12 5v14"/><path d="M5 12h14"/>',
+  x: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
 };
 
 function icon(name, cls) {
@@ -980,17 +986,91 @@ function modePicker(value, onChange) {
   );
 }
 
-/* Navigation sketches in the current theme's own colours: the page,
-   the sidebar or the floating pills and card, accent for the current item. */
+/* Navigation sketches in the current theme's own colours: the window, the
+   sidebar (docked, floating or inset) or the navbar (pills or bar), accent
+   for the current item. */
 function navSketch(kind) {
   const f = (v) => 'style="fill:var(' + v + ')"';
   const page = f("--ot-panel"),
     shell = f("--ot-fill"),
     line = f("--ot-line-strong");
+  const ring = 'style="stroke:var(--ot-line)" stroke-width=".5"';
   const pill =
     'style="fill:var(--ot-pop);stroke:var(--ot-line)" stroke-width=".5"';
-  let body;
-  if (kind == "navbar")
+  const accent = (x, y, w) =>
+    '<rect x="' +
+    x +
+    '" y="' +
+    y +
+    '" width="' +
+    w +
+    '" height="2" rx="1" fill="currentColor"/>';
+  const grey = (x, y, w) =>
+    '<rect x="' +
+    x +
+    '" y="' +
+    y +
+    '" width="' +
+    w +
+    '" height="2" rx="1" ' +
+    line +
+    "/>";
+  /* A sidebar's rows from x, the current one in accent. */
+  const rows = (x) =>
+    accent(x, 14, 9) + grey(x, 19, 8) + grey(x, 24, 10) + grey(x, 29, 7);
+  /* The page's text block from x. */
+  const text = (x, y) =>
+    grey(x, y, 26) + grey(x, y + 5, 34) + grey(x, y + 10, 20);
+  let win = page,
+    body;
+  if (kind == "docked")
+    body =
+      '<path d="M12 8h15v44H12a4 4 0 0 1-4-4V12a4 4 0 0 1 4-4z" ' +
+      shell +
+      "/>" +
+      '<path d="M27 8v44" ' +
+      ring +
+      "/>" +
+      rows(11) +
+      text(32, 14);
+  else if (kind == "floating")
+    body =
+      '<rect x="10.5" y="10.5" width="16" height="39" rx="2.5" ' +
+      pill +
+      "/>" +
+      rows(13) +
+      text(32, 14);
+  else if (kind == "inset") {
+    win = shell;
+    body =
+      '<rect x="27" y="14" width="43" height="36" rx="2.5" ' +
+      page +
+      " " +
+      ring +
+      "/>" +
+      rows(11) +
+      text(31, 19);
+  } else if (kind == "bar")
+    body =
+      '<path d="M8 17.5h64" ' +
+      ring +
+      "/>" +
+      '<circle cx="13" cy="12.5" r="2" ' +
+      line +
+      "/>" +
+      '<rect x="17.5" y="10" width="10" height="5" rx="1.5" ' +
+      shell +
+      "/>" +
+      accent(19, 11.5, 7) +
+      grey(30, 11.5, 7) +
+      grey(40, 11.5, 7) +
+      '<rect x="28.5" y="19.5" width="16" height="15" rx="2.5" ' +
+      pill +
+      "/>" +
+      accent(31, 23, 9) +
+      grey(31, 28, 7) +
+      text(14, 38);
+  else
     body =
       '<rect x="12" y="11" width="13" height="6" rx="3" ' +
       pill +
@@ -1006,65 +1086,44 @@ function navSketch(kind) {
       pill +
       "/>" +
       '<rect x="30" y="24" width="9" height="2" rx="1" fill="currentColor"/>' +
-      '<rect x="30" y="29" width="7" height="2" rx="1" ' +
-      line +
-      "/>" +
-      '<rect x="14" y="40" width="40" height="2" rx="1" ' +
-      line +
-      "/>" +
-      '<rect x="14" y="45" width="28" height="2" rx="1" ' +
-      line +
-      "/>";
-  else
-    body =
-      '<path d="M12 8h14v44H12a4 4 0 0 1-4-4V12a4 4 0 0 1 4-4z" ' +
-      shell +
-      "/>" +
-      '<rect x="11" y="13" width="11" height="2" rx="1" fill="currentColor"/>' +
-      '<rect x="11" y="18" width="9" height="2" rx="1" ' +
-      line +
-      "/>" +
-      '<rect x="11" y="23" width="10" height="2" rx="1" ' +
-      line +
-      "/>" +
-      '<rect x="11" y="28" width="8" height="2" rx="1" ' +
-      line +
-      "/>" +
-      '<rect x="31" y="14" width="26" height="2" rx="1" ' +
-      line +
-      "/>" +
-      '<rect x="31" y="19" width="34" height="2" rx="1" ' +
-      line +
-      "/>" +
-      '<rect x="31" y="24" width="20" height="2" rx="1" ' +
-      line +
-      "/>";
+      grey(30, 29, 7) +
+      grey(14, 40, 40) +
+      grey(14, 45, 28);
   return (
     '<svg viewBox="0 0 80 60" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
     '<rect width="80" height="60" ' +
     shell +
     "/>" +
     '<rect x="8" y="8" width="64" height="44" rx="4" ' +
-    page +
+    win +
     ' stroke="var(--ot-line)" stroke-width=".5"/>' +
     body +
     "</svg>"
   );
 }
 
-/* Appearance › Navigation: the ChatGPT sidebar or the floating navbar. */
-function navPicker(value, onChange) {
-  const opts = [
-    { value: "sidebar", label: _("Sidebar") },
-    { value: "navbar", label: _("Navbar") },
-  ];
-  const name = "ot-nav-" + Math.random().toString(36).slice(2, 8);
+const NAV_STYLES = {
+  sidebar: [
+    { value: "docked", label: _("Docked") },
+    { value: "floating", label: _("Floating") },
+    { value: "inset", label: _("Inset") },
+  ],
+  navbar: [
+    { value: "pills", label: _("Pills") },
+    { value: "bar", label: _("Bar") },
+  ],
+};
+
+/* Appearance › Navigation: one radio group across the two rows, the
+   sidebar's three styles and the navbar's two. `name` ties them. */
+function navPicker(kind, value, onChange, name) {
+  const opts = NAV_STYLES[kind];
   return E(
     "div",
     {
-      class: "ot-modes two",
+      class: "ot-modes" + (opts.length == 2 ? " two" : ""),
       role: "radiogroup",
-      "aria-label": _("Navigation"),
+      "aria-label": kind == "sidebar" ? _("Sidebar") : _("Navbar"),
     },
     opts.map((o) => {
       const tile = E("span", { class: "ot-tile" });
@@ -1077,7 +1136,11 @@ function navPicker(value, onChange) {
         checked: o.value == value ? "" : null,
         change: () => onChange(o.value),
       });
-      return E("label", { class: "ot-mode", title: o.label }, [radio, tile]);
+      return E("label", { class: "ot-mode", title: o.label }, [
+        radio,
+        tile,
+        E("span", { class: "ot-mode-name" }, o.label),
+      ]);
     }),
   );
 }

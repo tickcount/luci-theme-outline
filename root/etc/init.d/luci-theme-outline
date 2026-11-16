@@ -1,0 +1,21 @@
+#!/bin/sh /etc/rc.common
+# luci-theme-outline: no process, only triggers (as /etc/init.d/system
+# does): every applied change to /etc/config/luci — a theme switch among
+# them — re-checks which page answers the site root; every applied change to
+# /etc/config/outline drops the brand pictures it no longer names.
+
+START=99
+USE_PROCD=1
+
+reload_service() {
+	/usr/libexec/outline/root-page
+	/usr/libexec/outline/brand-prune
+}
+
+start_service() {
+	reload_service
+}
+
+service_triggers() {
+	procd_add_reload_trigger "luci" "outline"
+}

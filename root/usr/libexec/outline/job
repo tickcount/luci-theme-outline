@@ -1,6 +1,7 @@
 #!/bin/sh
 # shellcheck shell=dash
-# luci-theme-outline: detached package worker for System › Outline Theme › Package.
+# luci-theme-outline: detached package worker for the Outline section of
+# System › System › Language and Style.
 #
 #   job check     resolve the latest release
 #   job update    download the latest release and install it over this one
@@ -277,6 +278,9 @@ drop_cron() {
 remove_theme() {
 	status running deactivate
 	deactivate
+	# deactivate's commit fires no config trigger: hand the site root back
+	# to luci-base's index.html now, while the script is still installed.
+	[ -x /usr/libexec/outline/root-page ] && /usr/libexec/outline/root-page
 	status running remove
 	if installed; then
 		case "$PM" in
@@ -291,6 +295,7 @@ remove_theme() {
 	rm -rf /www/luci-static/outline /usr/share/ucode/luci/template/themes/outline \
 		/www/luci-static/resources/outline /www/luci-static/resources/view/outline \
 		/usr/libexec/outline
+	rm -f /www/outline.html /etc/init.d/luci-theme-outline /etc/rc.d/S99luci-theme-outline
 	rm -f /www/luci-static/resources/menu-outline.js /www/luci-static/resources/sidebar-outline.js \
 		/www/luci-static/resources/router-outline.js \
 		/usr/share/rpcd/ucode/luci.outline /usr/share/rpcd/acl.d/luci-theme-outline.json \

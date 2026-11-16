@@ -40,7 +40,7 @@ body:
     id: theme
     attributes:
       label: Theme version
-      description: System → Outline Theme → Package.
+      description: System → System → Language and Style, the Outline section.
       placeholder: "1.3.2"
     validations:
       required: true
@@ -58,7 +58,7 @@ body:
     id: layout
     attributes:
       label: Navigation
-      description: System → Outline Theme → Appearance.
+      description: System → System → Language and Style, under Design.
       options:
         - Sidebar
         - Navbar

@@ -5,7 +5,7 @@
    forks such as Tachyon, Dawnline). Without them those apps fall back to
    hardcoded light-theme values: lightgray 2px frames and #e0e0e0 skeletons
    on a black page. Mapped onto Outline's tokens they follow the palette, dark mode and
-   System › Outline Theme overrides. LuCI core uses none of them, and the
+   theme settings' overrides. LuCI core uses none of them, and the
    theme's own sources (outline/ui.js) read Outline's tokens first. */
 :root {
   --background-color-high: var(--panel-bg);

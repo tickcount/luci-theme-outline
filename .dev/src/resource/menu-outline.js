@@ -63,7 +63,7 @@ return baseclass.extend({
       sessionStorage.setItem(
         CACHE_KEY,
         JSON.stringify({
-          v: 6,
+          v: 8,
           lang: document.documentElement.lang || "",
           html: sidebar.innerHTML,
           scroll: nav.scrollTop || 0,
@@ -193,6 +193,16 @@ return baseclass.extend({
           // Shown only as the navbar's brand pill (_layout.css).
           E("span", { class: "sidebar-rail-label" }, [host]),
         ]),
+        // Collapsed, search stays reachable from the rail (initPalette).
+        E(
+          "button",
+          {
+            class: "sidebar-rail-search",
+            type: "button",
+            "aria-label": _("Type to filter…"),
+          },
+          [this._iconFile("search", 20)],
+        ),
         E("div", { class: "sidebar-rail-sep", role: "presentation" }),
         E("nav", {
           class: "sidebar-rail-nav",
@@ -212,6 +222,14 @@ return baseclass.extend({
       E("div", { class: "sidebar-panel" }, [
         E("div", { class: "sidebar-header" }, [
           E("a", { class: "sidebar-brand", href: "/" }, [
+            // Shown beside the name in the desktop sidebars (_nav.css).
+            E("img", {
+              class: "sidebar-logo",
+              src: sidebar.dataset.logo || `${media}/images/logo.png`,
+              alt: "",
+              width: "20",
+              height: "20",
+            }),
             E("span", { class: "sidebar-brand-text" }, [host]),
           ]),
           // Command palette trigger: ChatGPT's search icon in the title row
@@ -245,6 +263,8 @@ return baseclass.extend({
           ),
         ]),
         E("nav", { class: "sidebar-nav", id: "sidebar-nav" }),
+        // Log out as a labelled row at the foot (renderSidebarNav).
+        E("div", { class: "sidebar-panel-foot", id: "sidebar-panel-foot" }),
       ]),
     );
   },
@@ -334,6 +354,17 @@ return baseclass.extend({
             .querySelector(`.sidebar-rail-item[data-section="${section}"]`)
             ?.classList.add("active");
           this._showSection(section);
+          // The current section unfolds; the one the page left folds
+          // unless the visitor opened it.
+          sidebar.querySelectorAll(".sidebar-accordion-item").forEach((g) => {
+            const open =
+              g.dataset.section == section || g.hasAttribute("data-user");
+            g.dataset.open = open;
+            g.querySelector(".sidebar-group-label")?.setAttribute(
+              "aria-expanded",
+              open,
+            );
+          });
         }
       }
     }
@@ -369,6 +400,14 @@ return baseclass.extend({
         .getElementById("sidebar")
         ?.getAttribute("data-outline-restored") === "1";
     const savedScrollTop = restored ? nav.scrollTop : 0;
+    // Sections the visitor unfolded (data-user) stay unfolded across the
+    // rebuild; the rest fold once the page leaves them.
+    const wasOpen = {};
+    nav
+      .querySelectorAll(".sidebar-accordion-item[data-user]")
+      .forEach((g) => (wasOpen[g.dataset.section] = true));
+    const panelFoot = document.getElementById("sidebar-panel-foot");
+    if (panelFoot) panelFoot.innerHTML = "";
 
     nav.innerHTML = "";
     if (rail) rail.innerHTML = "";
@@ -400,6 +439,20 @@ return baseclass.extend({
           ),
         );
         foot.hidden = false;
+        panelFoot?.appendChild(
+          E(
+            "a",
+            {
+              class: "sidebar-logout sidebar-foot-link",
+              href: L.url(branchUrl, section.name),
+              onclick: closeDrawer,
+            },
+            [
+              this._sectionIcon(section.name, 16, title),
+              E("span", {}, [title]),
+            ],
+          ),
+        );
         return;
       }
 
@@ -454,20 +507,40 @@ return baseclass.extend({
         return;
       }
 
+      // Desktop sidebars list every section folded but the current one
+      // (and any the visitor opened); the phone drawer shows one at a time.
+      const open = isActive || !!wasOpen[section.name];
+      const groupIcon = this._sectionIcon(section.name, 16, title);
+      groupIcon.classList.add("sidebar-group-icon");
       nav.appendChild(
         E(
           "div",
           {
             class: "sidebar-accordion-item" + (isActive ? " active" : ""),
-            "data-open": "true",
+            "data-open": String(open),
+            "data-user": wasOpen[section.name] ? "" : null,
             "data-section": section.name,
           },
           [
-            // ChatGPT's group label ("Projects", "Recents"): the panel shows
-            // one section at a time, picked on the rail, so it only names it.
-            E("div", { class: "sidebar-group-label" }, [
-              E("span", { class: "sidebar-label" }, [title]),
-            ]),
+            // The section's row: icon, name and a chevron; it folds the
+            // section (sidebar-outline.js). In the drawer it only names it.
+            E(
+              "button",
+              {
+                class: "sidebar-group-label",
+                type: "button",
+                "aria-expanded": String(open),
+              },
+              [
+                groupIcon,
+                E("span", { class: "sidebar-label" }, [title]),
+                E(
+                  "span",
+                  { class: "sidebar-group-chevron", "aria-hidden": "true" },
+                  [this._iconFile("chevron-right", 14)],
+                ),
+              ],
+            ),
             E("div", { class: "sidebar-accordion-sub" }, [
               E(
                 "ul",
@@ -629,6 +702,11 @@ return baseclass.extend({
     const isMac = /Mac|iP(ad|hone|od)/.test(navigator.platform);
     trigger.setAttribute("aria-keyshortcuts", isMac ? "Meta+K" : "Control+K");
     trigger.addEventListener("click", () => this.openPalette());
+    // The collapsed rail's search (delegated: a cache-restored rail has no
+    // handlers).
+    document.addEventListener("click", (e) => {
+      if (e.target.closest?.(".sidebar-rail-search")) this.openPalette();
+    });
 
     document.addEventListener("keydown", (e) => {
       // An IME swallows these keys while composing; keyCode 229 covers

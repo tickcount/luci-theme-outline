@@ -15,6 +15,11 @@
     .spinning::before {
       @apply [animation-duration:1s]!;
     }
+
+    /* The view's loader stays a still line: a 1ms shimmer would strobe. */
+    #view > .spinning:first-child {
+      @apply text-muted-foreground [animation:none]! bg-none;
+    }
   }
 }
 
@@ -28,5 +33,9 @@
 
   .spinning::before {
     @apply [animation-duration:1s]!;
+  }
+
+  #view > .spinning:first-child {
+    @apply text-muted-foreground [animation:none]! bg-none;
   }
 }

@@ -12,10 +12,7 @@ function walk(dir, out = []) {
   return out;
 }
 
-const js = [
-  ...walk(join(src, "outline")),
-  ...walk(join(src, "view/outline")),
-].filter((f) => f.endsWith(".js"));
+const js = walk(join(src, "outline")).filter((f) => f.endsWith(".js"));
 
 test("every LuCI module parses as a function body", () => {
   for (const f of js) {
@@ -26,7 +23,7 @@ test("every LuCI module parses as a function body", () => {
   }
 });
 
-test("menu and ACL agree on the rpc methods the views call", () => {
+test("the ACL and rpcd agree on the rpc methods the modules call", () => {
   const acl = JSON.parse(
     readFileSync(
       join(root, "root/usr/share/rpcd/acl.d/luci-theme-outline.json"),
@@ -53,18 +50,6 @@ test("menu and ACL agree on the rpc methods the views call", () => {
       );
     }
   }
-  const menu = JSON.parse(
-    readFileSync(
-      join(root, "root/usr/share/luci/menu.d/luci-theme-outline.json"),
-      "utf8",
-    ),
-  );
-  for (const node of Object.values(menu))
-    if (node.action.type == "view")
-      assert.ok(
-        js.some((f) => f.endsWith(`view/${node.action.path}.js`)),
-        node.action.path,
-      );
 });
 
 test("the job worker only accepts fixed actions", () => {

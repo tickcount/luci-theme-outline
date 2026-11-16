@@ -6,10 +6,16 @@
 
 {%
 	import { getuid, getspnam } from 'luci.core';
-	import { lsdir, readfile, writefile, access } from 'fs';
+	import { lsdir, readfile, writefile, access, stat } from 'fs';
 	import { cursor } from 'uci';
 
 	const boardinfo = ubus.call('system', 'board') ?? {};
+	// uhttpd sends no Cache-Control, so a browser keeps a stylesheet by
+	// heuristic freshness (weeks for an old Last-Modified) without asking.
+	// Its mtime in the URL makes every deploy — package, sync or copy — a
+	// new URL.
+	const css_file = blank_page ? 'login.css' : 'main.css';
+	const css_v = stat(`/www${media}/${css_file}`)?.mtime ?? 0;
 	const rootsp = getspnam('root');
 	const root_pw_unset = (rootsp && rootsp.pwdp == '');
 
@@ -38,7 +44,7 @@
 		sort(patch_all);
 	}
 
-	// Appearance settings (System › Outline Theme › Appearance). Absent config = stock look.
+	// Appearance settings (System › System › Language and Style). Absent config = stock look.
 	// The app derives the colours in the browser and stores the result as
 	// `list token 'name=#value'` per variant; this block only assembles the
 	// override sheet. It is a line-for-line copy of assemble() in
@@ -51,7 +57,12 @@
 	const appearance = ocfg.get_all('outline', 'appearance') ?? {};
 	const default_mode = { light: 'light', dark: 'dark' }[appearance.mode] ?? 'device';
 	const reduced_motion = { on: 'true', off: 'false' }[appearance.reduced_motion];
+	// Navigation: the kind (sidebar | navbar; unset = navbar) and its style.
+	// A style that doesn't belong to the kind (or none, as older configs
+	// store) falls back to the kind's first style.
+	const NAV_KIND = { docked: 'sidebar', floating: 'sidebar', inset: 'sidebar', pills: 'navbar', bar: 'navbar' };
 	const nav_mode = appearance.navigation == 'sidebar' ? 'sidebar' : 'navbar';
+	const nav_style = NAV_KIND[appearance.nav_style] == nav_mode ? appearance.nav_style : (nav_mode == 'sidebar' ? 'docked' : 'pills');
 
 	const SEL = { light: ':root:not([data-darkmode="true"])', dark: ':root[data-darkmode="true"]' };
 	const FONT_RE = /^[A-Za-z0-9 ,"'_.\-]{1,200}$/;
@@ -60,7 +71,9 @@
 	const MONO_TAIL = '"Geist Mono Variable", ui-monospace, "SF Mono", Menlo, Consolas, monospace';
 	const SYSTEM_SANS = 'system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
 	const SYSTEM_MONO = 'ui-monospace, "SFMono-Regular", "SF Mono", Menlo, Consolas, "Liberation Mono", monospace';
-	const int_in = (v, lo, hi, def) => { const n = +(v ?? ''); return (type(n) == 'int' && n >= lo && n <= hi) ? n : def; };
+	// Unset (or empty) is the default: +'' is 0, a valid value of a range
+	// that starts at 0 (the backdrop's blur).
+	const int_in = (v, lo, hi, def) => { if (v == null || v == '') return def; const n = +v; return (type(n) == 'int' && n >= lo && n <= hi) ? n : def; };
 	const num = (x) => replace(sprintf('%.4f', x), /\.?0+$/, '');
 	const size_vars = (px) => join(';', map([ [ 'xs', 12 ], [ 'sm', 14 ], [ 'base', 16 ], [ 'lg', 18 ], [ 'xl', 20 ], [ '2xl', 24 ] ],
 		(e) => `--text-${e[0]}:${num(e[1] * px / 14.0 / 16.0)}rem`));
@@ -82,7 +95,7 @@
 	if (content_width != 920) push(css_out, `:root{--content-width:${content_width}px}`);
 
 	// Generated from palette.tokens() for the Vercel preset; kept in sync by settings-palette.test.js.
-	const default_tokens = {"light":["shell=#fdfdfd","bg=#ffffff","surface=#ffffff","elevated=#ffffff","elevated-secondary=#ffffff","dialog-bg=#ffffff","input-bg=#ffffff","select-bg=#f7f7f7","callout=#f7f7f7","text=#171717","text-tertiary=#989898","nav-text=#171717d9","border=#17171718","hover=#1717170c","soft=#1717170c","soft-hover=#17171719","brand=#171717","accent=#006aff","on-accent=#ffffff","link=#0053c7","ring=#006aff","success-surface=#eef9f3","warning-surface=#fdf5f0","danger-surface=#fdf0f0","info-surface=#e6f0ff","info-surface-fg=#004099","tooltip-bg=#171717","tooltip-fg=#ffffff","scrim=#00000040","switch-off=#17171719","primary-foreground=#ffffff","primary-hover=#393939","panel-bg=#ffffff","muted-foreground=#676767","input=#17171725","terminal-bg=#fdfdfd","success=#00a240","success-solid=#008635","success-surface-fg=#008635","warning=#e25507","warning-surface-fg=#b9480d","danger-solid=#e02e2a","danger-soft=#e02e2a1a","danger-surface-fg=#ba2623","destructive=#e02e2a","chart-blue=#006aff","chart-green=#00a240","chart-red=#e02e2a","chart-orange=#e25507","chart-yellow=#ffc300","background=#ffffff","foreground=#171717","primary=#171717","panel-border=#17171718","muted=#1717170c","info=#0053c7","sidebar-bg=#fdfdfd","sidebar-accent=#1717170c","sidebar-active-bg=#1717170c","terminal-hover=#1717170c","accent-a10=#006aff1a","accent-a30=#006aff4d","destructive-a15=#e02e2a26","destructive-a20=#e02e2a33","foreground-a5=#1717170d","foreground-a10=#1717171a","foreground-a30=#1717174d","info-a15=#0053c726","info-a40=#0053c766","elevated-a60=#ffffff99","elevated-a90=#ffffffe6"],"dark":["shell=#000000","bg=#000000","surface=#000000","elevated=#101010","elevated-secondary=#171717","dialog-bg=#0e0e0e","input-bg=#101010f5","select-bg=#ededed06","callout=#171717f5","text=#ededed","text-tertiary=#ededed71","nav-text=#edededd9","border=#ededed11","hover=#ededed10","soft=#ededed0c","soft-hover=#ededed18","brand=#ededed","accent=#006efe","on-accent=#ffffff","link=#539dfe","ring=#539dfeb6","success-surface=#08180e","warning-surface=#28150b","danger-surface=#281010","info-surface=#001c40","info-surface-fg=#338bfe","tooltip-bg=#101010","tooltip-fg=#ededed","scrim=#00000099","switch-off=#ededed18","primary-foreground=#101010","primary-hover=#dcdcdc","panel-bg=#080808","muted-foreground=#edededa0","input=#ededed21","terminal-bg=#0b0b0b","success=#40c977","success-solid=#008635","success-surface-fg=#04b84c","warning=#ff8549","warning-surface-fg=#ff8549","danger-solid=#e02e2a","danger-soft=#ff67641a","danger-surface-fg=#fa423e","destructive=#ff6764","chart-blue=#006efe","chart-green=#40c977","chart-red=#ff6764","chart-orange=#fb6a22","chart-yellow=#ffd240","background=#000000","foreground=#ededed","primary=#ededed","panel-border=#ededed11","muted=#ededed0c","info=#539dfe","sidebar-bg=#000000","sidebar-accent=#ededed10","sidebar-active-bg=#ededed10","terminal-hover=#ededed10","accent-a10=#006efe1a","accent-a30=#006efe4d","destructive-a15=#ff676426","destructive-a20=#ff676433","foreground-a5=#ededed0d","foreground-a10=#ededed1a","foreground-a30=#ededed4d","info-a15=#539dfe26","info-a40=#539dfe66","elevated-a60=#10101099","elevated-a90=#101010e6"]};
+	const default_tokens = {"light":["shell=#fdfdfd","bg=#ffffff","surface=#ffffff","elevated=#ffffff","elevated-secondary=#ffffff","dialog-bg=#ffffff","input-bg=#ffffff","select-bg=#f7f7f7","callout=#f7f7f7","text=#171717","text-tertiary=#989898","nav-text=#171717d9","border=#17171718","hover=#1717170c","soft=#1717170c","soft-hover=#17171719","brand=#171717","accent=#006aff","on-accent=#ffffff","link=#0053c7","ring=#006aff","success-surface=#eef9f3","warning-surface=#fdf5f0","danger-surface=#fdf0f0","info-surface=#e6f0ff","info-surface-fg=#004099","tooltip-bg=#171717","tooltip-fg=#ffffff","scrim=#00000040","switch-off=#17171719","primary-foreground=#ffffff","primary-hover=#393939","panel-bg=#ffffff","muted-foreground=#676767","input=#17171725","terminal-bg=#fdfdfd","success=#00a240","success-solid=#008635","success-surface-fg=#008635","warning=#e25507","warning-surface-fg=#b9480d","danger-solid=#e02e2a","danger-soft=#e02e2a1a","danger-surface-fg=#ba2623","destructive=#e02e2a","chart-blue=#006aff","chart-green=#00a240","chart-red=#e02e2a","chart-orange=#e25507","chart-yellow=#ffc300","background=#ffffff","foreground=#171717","primary=#171717","panel-border=#17171718","muted=#1717170c","info=#0053c7","sidebar-bg=#fdfdfd","sidebar-accent=#1717170c","sidebar-active-bg=#1717170c","terminal-hover=#1717170c","accent-a10=#006aff1a","accent-a30=#006aff4d","destructive-a15=#e02e2a26","destructive-a20=#e02e2a33","foreground-a2=#17171705","foreground-a3=#17171708","foreground-a4=#1717170a","foreground-a5=#1717170d","foreground-a7=#17171712","foreground-a8=#17171714","foreground-a9=#17171717","foreground-a10=#1717171a","foreground-a14=#17171724","foreground-a30=#1717174d","foreground-a78=#171717c7","foreground-a95=#171717f2","info-a15=#0053c726","info-a40=#0053c766","elevated-a60=#ffffff99","elevated-a90=#ffffffe6"],"dark":["shell=#000000","bg=#000000","surface=#000000","elevated=#101010","elevated-secondary=#171717","dialog-bg=#0e0e0e","input-bg=#101010f5","select-bg=#ededed06","callout=#171717f5","text=#ededed","text-tertiary=#ededed71","nav-text=#edededd9","border=#ededed11","hover=#ededed10","soft=#ededed0c","soft-hover=#ededed18","brand=#ededed","accent=#006efe","on-accent=#ffffff","link=#539dfe","ring=#539dfeb6","success-surface=#08180e","warning-surface=#28150b","danger-surface=#281010","info-surface=#001c40","info-surface-fg=#338bfe","tooltip-bg=#101010","tooltip-fg=#ededed","scrim=#00000099","switch-off=#ededed18","primary-foreground=#101010","primary-hover=#dcdcdc","panel-bg=#080808","muted-foreground=#edededa0","input=#ededed21","terminal-bg=#0b0b0b","success=#40c977","success-solid=#008635","success-surface-fg=#04b84c","warning=#ff8549","warning-surface-fg=#ff8549","danger-solid=#e02e2a","danger-soft=#ff67641a","danger-surface-fg=#fa423e","destructive=#ff6764","chart-blue=#006efe","chart-green=#40c977","chart-red=#ff6764","chart-orange=#fb6a22","chart-yellow=#ffd240","background=#000000","foreground=#ededed","primary=#ededed","panel-border=#ededed11","muted=#ededed0c","info=#539dfe","sidebar-bg=#000000","sidebar-accent=#ededed10","sidebar-active-bg=#ededed10","terminal-hover=#ededed10","accent-a10=#006efe1a","accent-a30=#006efe4d","destructive-a15=#ff676426","destructive-a20=#ff676433","foreground-a2=#ededed05","foreground-a3=#ededed08","foreground-a4=#ededed0a","foreground-a5=#ededed0d","foreground-a7=#ededed12","foreground-a8=#ededed14","foreground-a9=#ededed17","foreground-a10=#ededed1a","foreground-a14=#ededed24","foreground-a30=#ededed4d","foreground-a78=#edededc7","foreground-a95=#edededf2","info-a15=#539dfe26","info-a40=#539dfe66","elevated-a60=#10101099","elevated-a90=#101010e6"]};
 	const theme_color = { light: '#f9f9f9', dark: '#000000' };
 	for (let v in [ 'light', 'dark' ]) {
 		let t = ocfg.get_all('outline', v) ?? {};
@@ -112,7 +125,7 @@
 	const theme_color_light = theme_color.light;
 	const theme_color_dark = theme_color.dark;
 
-	// Brand assets (System › Outline Theme › Branding): a slot names a file in
+	// Brand assets (System › System › Language and Style › Brand): a slot names a file in
 	// /www/luci-static/outline-brand; an empty, malformed or missing one falls
 	// back to the theme's own image. `rev` busts caches when a slot changes.
 	const branding = ocfg.get_all('outline', 'branding') ?? {};
@@ -126,6 +139,12 @@
 	const logo_url = (branding.logo == 'openwrt' && access('/www/luci-static/bootstrap/logo.svg'))
 		? '/luci-static/bootstrap/logo.svg' : brand_url('logo', `${media}/images/logo.png`);
 	const favicon_url = brand_url('favicon', `${media}/images/favicon.svg`);
+	// Appearance › Backdrop: a picture from the brand library behind the
+	// whole window, blurred, under a coat of the page colour (_nav.css).
+	const backdrop_url = brand_url('backdrop', null);
+	const backdrop_blur = int_in(appearance.backdrop_blur, 0, 80, 48);
+	const backdrop_coat = int_in(appearance.backdrop_coat, 86, 100, 90);
+	const backdrop_fit = { fit: 'fit', stretch: 'stretch', center: 'center', tile: 'tile' }[appearance.backdrop_fit] ?? 'fill';
 	const favicon_type = match(favicon_url, /\.svg(\?|$)/) ? 'image/svg+xml' : (match(favicon_url, /\.png(\?|$)/) ? 'image/png' : '');
 	const favicon_ico_url = brand_url('favicon_ico', `${media}/images/favicon.ico`);
 	const apple_touch_url = brand_url('apple_touch', `${media}/images/apple-touch-icon.png`);
@@ -161,7 +180,7 @@
 -%}
 
 <!DOCTYPE html>
-<html lang="{{ dispatcher.lang }}" data-outline-media="{{ media }}" data-default-theme="{{ default_mode }}" data-nav="{{ nav_mode }}"{% if (reduced_motion): %} data-reduced-motion="{{ reduced_motion }}"{% endif %}>
+<html lang="{{ dispatcher.lang }}" data-outline-media="{{ media }}" data-default-theme="{{ default_mode }}" data-nav="{{ nav_mode }}" data-nav-style="{{ nav_style }}"{% if (backdrop_url): %} data-backdrop="image"{% endif %}{% if (reduced_motion): %} data-reduced-motion="{{ reduced_motion }}"{% endif %}>
 	<head>
 		<meta charset="utf-8">
 		<meta name="theme-color" content="{{ theme_color_light }}" media="(prefers-color-scheme: light)">
@@ -190,10 +209,10 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 		<meta name="color-scheme" content="light dark">
 		{% if (blank_page): %}
-		<link rel="stylesheet" href="{{ media }}/login.css">
+		<link rel="stylesheet" href="{{ media }}/login.css?v={{ css_v }}">
 		<style id="outline-appearance" data-luci-shell>{{ appearance_css }}</style>
 		{% else %}
-		<link rel="stylesheet" href="{{ media }}/main.css" data-luci-shell>
+		<link rel="stylesheet" href="{{ media }}/main.css?v={{ css_v }}" data-luci-shell>
 		<style id="outline-appearance" data-luci-shell>{{ appearance_css }}</style>
 		{% for (let patch in patch_files): %}
 		<link rel="stylesheet" href="{{ media }}/patches/{{ patch }}.css" data-luci-patch="{{ patch }}">
@@ -217,6 +236,13 @@
 	</head>
 
 	<body class="lang_{{ dispatcher.lang }}" data-page="{{ entityencode(page, true) }}" data-asset-version="{# PKG_VERSION #}"{% if (length(patch_all)): %} data-patches="{{ entityencode(join(' ', patch_all), true) }}"{% endif %}>
+		{#- Appearance › Backdrop (hidden unless html[data-backdrop]); the
+		    Appearance page fills it while it previews; the login page and the
+		    site root draw it too. -#}
+		<div id="outline-backdrop" aria-hidden="true" data-fit="{{ backdrop_fit }}" style="--backdrop-blur:{{ backdrop_blur }}px;--backdrop-coat:{{ backdrop_coat / 100.0 }}">
+			<div class="backdrop-image"{% if (backdrop_url): %} style="background-image:url('{{ backdrop_url }}')"{% endif %}></div>
+			<div class="backdrop-coat"></div>
+		</div>
 		{% if (!blank_page): %}
 
 		<div
@@ -246,7 +272,7 @@
 					if (!raw) return;
 					var cache = JSON.parse(raw);
 					var sb = document.getElementById('sidebar');
-					if (!sb || !cache || cache.v !== 6 || cache.lang !== document.documentElement.lang) return;
+					if (!sb || !cache || cache.v !== 8 || cache.lang !== document.documentElement.lang) return;
 
 					sb.innerHTML = cache.html;
 					/* The cached HTML holds the logo of the page that cached it. */
@@ -258,8 +284,8 @@
 					/* The cached HTML carries the previous page's active highlight —
 					   recompute it for the current URL (longest link-path prefix wins,
 					   mirroring menu-outline's dispatchpath matching). */
-					var stale = sb.querySelectorAll('.active, .is-shown');
-					for (var i = 0; i < stale.length; i++) stale[i].classList.remove('active', 'is-shown');
+					var stale = sb.querySelectorAll('.active, .is-shown, .is-open');
+					for (var i = 0; i < stale.length; i++) stale[i].classList.remove('active', 'is-shown', 'is-open');
 
 					var links = sb.querySelectorAll('a.sidebar-sub-link, a.sidebar-nav-parent, a.sidebar-logout');
 					var path = location.pathname;
@@ -276,7 +302,18 @@
 						if (sub) {
 							sub.classList.add('active');
 							var acc = best.closest('.sidebar-accordion-item');
-							if (acc) acc.classList.add('active');
+							if (acc) {
+								/* The current section unfolds (the others only if the
+								   visitor opened them). */
+								acc.classList.add('active');
+								var groups = sb.querySelectorAll('.sidebar-accordion-item');
+								for (var g = 0; g < groups.length; g++) {
+									var on = groups[g] === acc || groups[g].hasAttribute('data-user');
+									groups[g].setAttribute('data-open', on ? 'true' : 'false');
+									var lbl = groups[g].querySelector('.sidebar-group-label');
+									if (lbl) lbl.setAttribute('aria-expanded', on ? 'true' : 'false');
+								}
+							}
 						} else if (best.classList.contains('sidebar-logout')) {
 							best.classList.add('active');
 						} else {
@@ -307,6 +344,7 @@
 
 		<div id="sidebar-overlay"></div>
 
+
 		<div id="main-wrapper">
 			<div class="content-card">
 				<header class="card-header">
@@ -330,19 +368,9 @@
 					<div class="card-header-right">
 						{#- The command palette (⌘K) trigger lives in the sidebar under the
 						    title, ChatGPT-settings style — built by menu-outline.js. -#}
+						{#- No light/dark switch here: the mode lives in Appearance and
+						    the palette (⌘K). -#}
 						<div id="indicators" class="topbar-indicators"></div>
-						<button
-							id="theme-toggle-btn"
-							class="topbar-icon-btn"
-							type="button"
-							aria-label="{{ _('Design') }}"
-						>
-							{#- Both glyphs ship; CSS shows the one for html[data-darkmode],
-							    which the head script sets before paint — no sun→moon flip
-							    once sidebar-outline.js loads. -#}
-							<img class="theme-icon-light" src="{{ media }}/icons/sun.svg" width="16" height="16" alt="">
-							<img class="theme-icon-dark" src="{{ media }}/icons/moon.svg" width="16" height="16" alt="">
-						</button>
 					</div>
 				</header>
 

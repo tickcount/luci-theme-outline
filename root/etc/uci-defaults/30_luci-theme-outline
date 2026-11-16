@@ -11,7 +11,7 @@ if [ "$PKG_UPGRADE" != 1 ]; then
 	EOF
 fi
 
-# System › Outline Theme settings. Absent options mean the stock look, so
+# The theme's settings (System › System › Language and Style). Absent options mean the stock look, so
 # only the sections are created; nothing is overwritten on upgrade.
 [ -f /etc/config/outline ] || touch /etc/config/outline
 for s in appearance:appearance light:theme dark:theme branding:branding updates:updates; do
@@ -19,7 +19,37 @@ for s in appearance:appearance light:theme dark:theme branding:branding updates:
 done
 uci -q commit outline
 
-# Brand images uploaded on the Branding page live outside the package's own
+# Automatic updates are on unless someone turned them off (the option is only
+# unset when nobody ever chose): a weekly check at a time picked once at
+# random, 03:00-05:59 router time, as the Outline section's switch does, so
+# routers do not all ask GitHub at the same moment.
+if [ -z "$(uci -q get outline.updates.auto)" ]; then
+	if [ -z "$(uci -q get outline.updates.minute)" ]; then
+		set -- $(awk 'BEGIN { srand(); print int(rand() * 60), 3 + int(rand() * 3), int(rand() * 7), 1 + int(rand() * 28) }')
+		uci -q set outline.updates.minute="$1"
+		uci -q set outline.updates.hour="$2"
+		uci -q set outline.updates.weekday="$3"
+		uci -q set outline.updates.monthday="$4"
+	fi
+	uci -q set outline.updates.auto=1
+	uci -q set outline.updates.interval=weekly
+	uci -q commit outline
+	cmd=/usr/libexec/outline/job
+	tab=/etc/crontabs/root
+	{
+		[ -f "$tab" ] && grep -v -F "$cmd auto" "$tab"
+		echo "$(uci -q get outline.updates.minute) $(uci -q get outline.updates.hour) * * $(uci -q get outline.updates.weekday) $cmd auto >/dev/null 2>&1"
+	} >"$tab.outline" && mv "$tab.outline" "$tab"
+	/etc/init.d/cron enable >/dev/null 2>&1
+	/etc/init.d/cron restart >/dev/null 2>&1
+fi
+
+# The site root (/) is the theme's "Redirecting" card (/www/outline.html)
+# while Outline is the active theme, luci-base's index.html otherwise;
+# /etc/init.d/luci-theme-outline keeps it so on every theme switch.
+/usr/libexec/outline/root-page
+
+# Brand images uploaded on the Appearance page live outside the package's own
 # directory so a reinstall keeps them.
 [ -d /www/luci-static/outline-brand ] || mkdir -p /www/luci-static/outline-brand
 

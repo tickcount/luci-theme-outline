@@ -20,16 +20,19 @@
 @source not "../../scripts/*.client.js";
 @source not "../../tests/*.js";
 @source not "../../docs/**/*";
-/* The System › Outline Theme pages style themselves (ot-* classes in
+/* The theme's settings (System › Language and Style, embedded by the
+   admin-system-system patch) style themselves (ot-* classes in
    outline/ui.js); their sources are full of class-like words that must not
    become utilities. */
 @source not "../resource/outline";
-@source not "../resource/view";
+@source not "../resource/patches/admin-system-system.js";
 
 @custom-variant dark (&:where([data-darkmode=true], [data-darkmode=true] *));
 
 @import "./_base.css";
 @import "./_layout.css";
+@import "./_nav.css";
+@import "./_backdrop.css";
 @import "./components/_button.css";
 @import "./components/_input.css";
 @import "./components/_controls.css";

@@ -1,0 +1,35 @@
+#!/bin/sh
+# shellcheck shell=dash
+# luci-theme-outline: drop the brand pictures nothing uses any more.
+#
+# Uploaded pictures live in /www/luci-static/outline-brand as
+# <slot>-<time>.<ext>. Once the branding is applied, a file no committed
+# outline.branding option names is one nobody will see again -- an earlier
+# upload, or the custom picture a slot left for a stock choice (the Outline
+# logo, no backdrop, the default icon) -- and the router's flash is small.
+# The generated manifest stays.
+#
+# Run by /etc/init.d/luci-theme-outline on every applied change to
+# /etc/config/outline. An upload commits only its cache-buster (rpcd's
+# brand_upload), which sends no config.change, so a picture that is
+# uploaded but not saved yet is not touched before its Save & Apply.
+
+DIR=/www/luci-static/outline-brand
+[ -d "$DIR" ] || exit 0
+
+used=" $(uci -q show outline.branding |
+	sed -n "s/^outline\.branding\.[A-Za-z0-9_]*='\(.*\)'$/\1/p" |
+	tr '\n' ' ') "
+
+for f in "$DIR"/*; do
+	[ -f "$f" ] || continue
+	name="${f##*/}"
+	case "$name" in
+	site.webmanifest) continue ;;
+	esac
+	case "$used" in
+	*" $name "*) ;;
+	*) rm -f "$f" ;;
+	esac
+done
+exit 0

@@ -254,6 +254,15 @@ export default defineConfig(({ mode, command }) => {
               proxyReq.removeHeader("accept-encoding");
             });
             proxy.on("proxyRes", (proxyRes, req, res) => {
+              // The device sets its session cookie Secure (it is served over
+              // HTTPS); this server is plain HTTP, where a browser keeps a
+              // Secure cookie only on localhost -- opened from the LAN, the
+              // login would never stick.
+              const cookies = proxyRes.headers["set-cookie"];
+              if (cookies)
+                proxyRes.headers["set-cookie"] = cookies.map((c) =>
+                  c.replace(/;\s*Secure/gi, ""),
+                );
               const status = proxyRes.statusCode ?? 200;
               const ct = proxyRes.headers["content-type"] || "";
               if (!ct.includes("text/html")) {

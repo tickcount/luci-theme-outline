@@ -1,4 +1,4 @@
-// luci-theme-outline: rpcd backend for System › Outline Theme (object "luci.outline")
+// luci-theme-outline: rpcd backend for the theme's settings in System › System › Language and Style (object "luci.outline")
 // Licensed to the public under the Apache License 2.0.
 
 'use strict';
@@ -29,7 +29,10 @@ const BRAND_SLOTS = {
 	favicon_ico: [ 'ico', 'png' ],
 	apple_touch: [ 'png', 'jpg', 'jpeg' ],
 	pwa_192: [ 'png' ],
-	pwa_512: [ 'png' ]
+	pwa_512: [ 'png' ],
+	/* Appearance › Backdrop: the window's background picture, downscaled
+	   and re-encoded in the browser before upload. */
+	backdrop: [ 'jpg', 'jpeg', 'png', 'webp' ]
 };
 
 
@@ -283,7 +286,13 @@ const methods = {
 				if (!fallback) return { error: 'no other theme installed' };
 				c.set('luci', 'main', 'mediaurlbase', fallback);
 			}
-			return c.commit('luci') ? { result: true } : { error: 'cannot commit' };
+			if (!c.commit('luci')) return { error: 'cannot commit' };
+			/* A commit without an apply sends no config.change, so the
+			   init script's trigger never sees it: put the site root (/) in
+			   step with the theme here (it reloads uhttpd a few seconds
+			   later, after this reply). */
+			system('/usr/libexec/outline/root-page </dev/null >/dev/null 2>&1');
+			return { result: true };
 		}
 	},
 
@@ -355,10 +364,11 @@ const methods = {
 
 	/* The browser has put the file at BRAND_TMP through cgi-upload. It lands
 	   as `<slot>-<time>.<ext>` only after type, size and content checks for
-	   that slot; the tmp file is gone afterwards either way. Older uploads
-	   for the slot are pruned to the two newest plus whatever the committed
-	   config still points at, so an unsaved change never breaks the look the
-	   rest of LuCI is showing. */
+	   that slot; the tmp file is gone afterwards either way. Earlier uploads
+	   for the slot go at once: only this one and whatever the committed
+	   config still points at stay, so an unsaved change never breaks the
+	   look the rest of LuCI is showing. What the applied config no longer
+	   names is removed by /usr/libexec/outline/brand-prune. */
 	brand_upload: {
 		args: { slot: '', name: '' },
 		call: function(req) {
@@ -385,7 +395,7 @@ const methods = {
 			const committed = c.get(CONF, 'branding', slot);
 			const prefix = replace(slot, '_', '-') + '-';
 			let mine = filter(brand_assets(), (x) => substr(x.name, 0, length(prefix)) == prefix);
-			for (let i = 2; i < length(mine); i++)
+			for (let i = 0; i < length(mine); i++)
 				if (mine[i].name != committed && mine[i].name != name)
 					unlink(`${BRAND_DIR}/${mine[i].name}`);
 

@@ -87,7 +87,31 @@
   @apply relative pl-7!;
   @apply before:absolute before:top-1/2 before:left-1.5 before:size-4 before:-translate-y-1/2 before:animate-spin before:bg-current before:mask-[var(--icon-loader-2)] before:mask-cover before:mask-center before:mask-no-repeat;
 
+  /* The view's own loader (luci-base's view.ut, then LuCI.view, put a
+     div.spinning "Loading view…" in #view): the sign-in page's shimmering
+     line instead of a spinner -- the same words in the same light, so
+     signing in hands straight over to it; its phase follows the clock
+     (footer.ut). It shows after a beat: a quick view never flashes it. */
   #view > &:first-child {
-    @apply mx-auto grid min-h-48 w-fit place-items-center;
+    @apply mx-auto grid min-h-48 w-fit place-items-center bg-clip-text pl-0! text-sm leading-5 font-medium text-transparent before:content-none;
+    background-image: linear-gradient(
+      90deg,
+      var(--text-tertiary) 35%,
+      var(--foreground) 50%,
+      var(--text-tertiary) 65%
+    );
+    background-size: 250% 100%;
+    animation:
+      outline-shimmer 1.8s linear infinite,
+      outline-fade-in 0.3s ease 0.2s backwards;
+  }
+}
+
+@keyframes outline-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0 0;
   }
 }

@@ -143,7 +143,7 @@ jobs:
           path: release
           merge-multiple: true
 
-      # manifest.json: what install.sh and System › Outline Theme › Package
+      # manifest.json: what install.sh and the Outline section in LuCI
       # read first -- served from the CDN (no API rate limit) and carrying a
       # sha256 per package, which both verify before installing.
       - name: Checksums and manifest
