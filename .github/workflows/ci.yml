@@ -86,6 +86,8 @@ jobs:
           shellcheck -S warning \
             install.sh \
             root/usr/libexec/outline/job \
+            root/usr/libexec/outline/root-page \
+            root/usr/libexec/outline/brand-prune \
             root/etc/uci-defaults/30_luci-theme-outline \
             .dev/scripts/*.sh
 

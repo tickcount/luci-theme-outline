@@ -25,11 +25,13 @@ uci -q commit outline
 # routers do not all ask GitHub at the same moment.
 if [ -z "$(uci -q get outline.updates.auto)" ]; then
 	if [ -z "$(uci -q get outline.updates.minute)" ]; then
-		set -- $(awk 'BEGIN { srand(); print int(rand() * 60), 3 + int(rand() * 3), int(rand() * 7), 1 + int(rand() * 28) }')
-		uci -q set outline.updates.minute="$1"
-		uci -q set outline.updates.hour="$2"
-		uci -q set outline.updates.weekday="$3"
-		uci -q set outline.updates.monthday="$4"
+		read -r min hour wday mday <<-EOF
+			$(awk 'BEGIN { srand(); print int(rand() * 60), 3 + int(rand() * 3), int(rand() * 7), 1 + int(rand() * 28) }')
+		EOF
+		uci -q set outline.updates.minute="$min"
+		uci -q set outline.updates.hour="$hour"
+		uci -q set outline.updates.weekday="$wday"
+		uci -q set outline.updates.monthday="$mday"
 	fi
 	uci -q set outline.updates.auto=1
 	uci -q set outline.updates.interval=weekly
