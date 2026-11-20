@@ -3,18 +3,20 @@
 "require rpc";
 "require uci";
 "require outline.icons as icons";
+"require outline.routericon as routericon";
 "require outline.ui as w";
 
 /*
  * The brand pictures on System › Outline Theme › Appearance: three choices,
  * picked like Codex's dock icon.
  *
- *   Logo      the sidebar and sign-in logo: the theme's cat, OpenWrt's logo
- *             (luci-theme-bootstrap's, referenced in place -- value `openwrt`),
- *             an upload, or a new upload.
+ *   Logo      the sidebar and sign-in logo: OpenWrt's logo (luci-theme-
+ *             bootstrap's, referenced in place -- value `openwrt`), Outline
+ *             (the theme's own, value ""), an upload, or a new upload.
  *   App icon  one picture for the browser tab, the home screen and the
- *             installed web app: the theme's icons, the logo, OpenWrt's logo,
- *             an upload. On Save every size is rendered from it
+ *             installed web app: OpenWrt's logo, Outline, an upload -- the
+ *             logo's own upload among them (value `logo`, so the icon follows
+ *             the logo). On Save every size is rendered from it
  *             (outline/icons.js) and uploaded into the five icon slots
  *             header.ut serves: favicon, favicon_ico, apple_touch, pwa_192,
  *             pwa_512.
@@ -25,6 +27,15 @@
  * type, size and content and stores <slot>-<time>.<ext> under
  * /www/luci-static/outline-brand). Which picture is used is a setting, stored
  * in `outline.branding` by the page's Save like any other.
+ *
+ * Outline's picture (outline/routericon.js) wears the accent: the page
+ * passes a function that returns it as { key, hex, stock }
+ * (Appearance.iconAccent()). The theme's stock files are that picture in the
+ * stock accent, so with it nothing is uploaded. Any other accent is baked on
+ * Save -- the logo as an SVG upload into the `logo` slot (header.ut serves it
+ * like any upload), the App icon into the five icon slots -- and
+ * `logo_router` / `icon_router` record the accent key they were baked with,
+ * so a changed accent bakes them again and an unchanged one keeps them.
  *
  * create() returns one controller per page render; the page owns the
  * preview's lifetime (restore()) and the save chain (stage()).
@@ -55,17 +66,6 @@ const ICON_SLOTS = [
 /* A backdrop is blurred: 2560 px on its long side is plenty, and keeps the
    upload far under the router's 4 MB limit (and its flash). */
 const BACKDROP_MAX = 2560;
-
-function media() {
-  return (
-    document.documentElement.getAttribute("data-outline-media") ||
-    "/luci-static/outline"
-  );
-}
-
-function themeImage(name) {
-  return media() + "/images/" + name;
-}
 
 function extOf(name) {
   const m = /\.([A-Za-z0-9]+)$/.exec(name || "");
@@ -122,12 +122,26 @@ function shrinkPhoto(file) {
     .finally(() => URL.revokeObjectURL(url));
 }
 
-function Brand(lib, onChange) {
+function Brand(lib, onChange, accent) {
   this.lib = lib || { assets: [], max: 4194304, rev: "0" };
   this.onChange = onChange;
+  this.accentOf =
+    accent ||
+    (() => ({
+      key: "dark:" + routericon.DEFAULT,
+      hex: routericon.DEFAULT,
+      stock: true,
+    }));
   const b = uci.get("outline", "branding") || {};
+  /* What the stored Outline files wear; "" for the theme's stock ones. */
+  this.baked = {
+    logo: b.logo_router ? b.logo || "" : "",
+    logoKey: b.logo_router || "",
+    iconKey: b.icon_router || "",
+  };
   this.state = {
-    logo: b.logo || "",
+    /* A baked Outline logo is still the Outline choice. */
+    logo: b.logo_router ? "" : b.logo || "",
     icon: b.icon || "",
     backdrop: b.backdrop || "",
   };
@@ -165,27 +179,98 @@ Brand.prototype = {
     return (this.lib.builtin && this.lib.builtin.openwrt) || null;
   },
 
-  /* The logo the state picks, or null for the theme's cat. */
-  logoUrl(state) {
+  /* The accent Outline's picture wears now; the page keeps the variant the
+     stored files came from unless an accent was edited. */
+  accent() {
+    const m = /(light|dark):/.exec(this.baked.iconKey || this.baked.logoKey);
+    return this.accentOf(m ? m[1] : null);
+  },
+
+  /* What Outline's files are keyed by: "stock" for the theme's own. */
+  outlineKey(state) {
+    if (state === this.saved) return this.baked.iconKey || "stock";
+    const a = this.accent();
+    return a.stock ? "stock" : routericon.REV + "/" + a.key;
+  },
+
+  /* Stored Outline files that no longer match: another accent, or baked
+     from an earlier drawing. The page counts this as a change to save. */
+  stale() {
+    return (
+      this.iconKey(this.state) != this.iconKey(this.saved) ||
+      this.logoKey(this.state) != this.logoKey(this.saved)
+    );
+  },
+
+  /* A blob: URL of Outline's picture (light and dark in one) in the current
+     accent; the previous one goes when the accent moves. */
+  outlineUrl() {
+    const hex = this.accent().hex;
+    const hit = this.blob;
+    if (hit && hit.hex == hex) return hit.url;
+    if (hit) URL.revokeObjectURL(hit.url);
+    const url = URL.createObjectURL(
+      new Blob([routericon.svg(hex)], { type: "image/svg+xml" }),
+    );
+    this.blob = { hex: hex, url: url };
+    return url;
+  },
+
+  /* The logo's own picture (OpenWrt's, an upload), or null for Outline. */
+  customLogoUrl(state) {
     const v = (state || this.state).logo;
     if (v == "openwrt") return this.openwrtUrl();
     return this.has(v) ? this.assetUrl(v) : null;
   },
 
-  /* The App icon source picture, or null for the theme's own icons. */
-  iconUrl(state) {
+  logoUrl(state) {
+    return this.customLogoUrl(state) || this.outlineUrl();
+  },
+
+  logoKey(state) {
+    if (this.customLogoUrl(state)) return "logo:" + state.logo;
+    return (
+      "outline:" +
+      (state === this.saved
+        ? this.baked.logoKey || "stock"
+        : this.outlineKey(state))
+    );
+  },
+
+  /* Which App icon tile the state means: "outline", "openwrt", "logo" (the
+     logo's upload) or an icon upload. `logo` follows the logo, so with
+     OpenWrt's or Outline's logo it is that tile, never one of its own. */
+  iconChoice(state) {
     state = state || this.state;
     const v = state.icon;
-    if (v == "logo") return this.logoUrl(state);
-    if (v == "openwrt") return this.openwrtUrl();
-    return this.has(v) ? this.assetUrl(v) : null;
+    if (v == "logo") {
+      if (state.logo == "openwrt" && this.openwrtUrl()) return "openwrt";
+      return this.has(state.logo) ? "logo" : "outline";
+    }
+    if (v == "openwrt") return this.openwrtUrl() ? "openwrt" : "outline";
+    return this.has(v) ? v : "outline";
+  },
+
+  /* The App icon source picture. */
+  iconUrl(state) {
+    state = state || this.state;
+    const c = this.iconChoice(state);
+    if (c == "outline") return this.outlineUrl();
+    if (c == "openwrt") return this.openwrtUrl();
+    return this.assetUrl(c == "logo" ? state.logo : c);
   },
 
   /* What the App icon resolves to, for "has it changed since Save?". */
   iconKey(state) {
-    const v = state.icon;
-    if (v == "logo") return this.logoUrl(state) ? "logo:" + state.logo : "";
-    return this.iconUrl(state) ? v : "";
+    const c = this.iconChoice(state);
+    if (c == "outline")
+      return (
+        "outline:" +
+        (state === this.saved
+          ? this.baked.iconKey || "stock"
+          : this.outlineKey(state))
+      );
+    return c == "logo" ? "logo:" + state.logo : c;
   },
 
   /* The backdrop picture, or null for none. */
@@ -196,8 +281,13 @@ Brand.prototype = {
 
   uploadsFor(slot) {
     const prefix = slot + "-";
+    /* A baked Outline logo is the Outline tile, not a "Custom" one. */
+    const baked = [this.baked.logo, this.staged && this.staged.logo];
     return this.lib.assets.filter(
-      (a) => a.name.indexOf(prefix) == 0 && PICTURE.indexOf(a.type) > -1,
+      (a) =>
+        a.name.indexOf(prefix) == 0 &&
+        PICTURE.indexOf(a.type) > -1 &&
+        baked.indexOf(a.name) < 0,
     );
   },
 
@@ -207,7 +297,8 @@ Brand.prototype = {
     const q = (sel) =>
       Array.prototype.slice.call(document.querySelectorAll(sel));
     return {
-      logo: q("img.sidebar-logo"),
+      /* The rail's and the panel's, and the phone navbar's brand pill. */
+      logo: q("img.sidebar-logo, .topbar-brand img"),
       favicon: q('link[rel="icon"]'),
       apple: q('link[rel="apple-touch-icon"]'),
     };
@@ -257,14 +348,14 @@ Brand.prototype = {
   preview() {
     this.restore();
     const t = this.targets();
-    const logo = this.logoUrl();
-    if (logo) {
+    if (this.logoKey(this.state) != this.logoKey(this.saved)) {
+      const logo = this.logoUrl();
       t.logo.forEach((el) => el.setAttribute("src", logo));
       const sb = document.getElementById("sidebar");
       if (sb) sb.setAttribute("data-logo", logo);
     }
     if (this.iconKey(this.state) != this.iconKey(this.saved)) {
-      const icon = this.iconUrl() || themeImage("favicon.svg");
+      const icon = this.iconUrl();
       t.favicon.concat(t.apple).forEach((el) => {
         el.setAttribute("href", icon);
         el.removeAttribute("type");
@@ -372,21 +463,33 @@ Brand.prototype = {
 
   /* Render and upload the five icon sizes when the App icon changed (or
      they are missing); resolves to { slot: name } or null for the theme's
-     own icons. */
+     own icons (Outline in the stock accent). */
   iconFiles() {
-    const url = this.iconUrl();
-    if (!url) return Promise.resolve(null);
+    const outline = this.iconChoice(this.state) == "outline";
+    if (outline && this.outlineKey(this.state) == "stock")
+      return Promise.resolve(null);
+    /* Outline is SVG only: one favicon, no rasters (header.ut then serves
+       no ICO and no Apple touch icon). */
+    const slots = outline ? ["favicon"] : ICON_SLOTS;
     const b = uci.get("outline", "branding") || {};
     if (
       this.iconKey(this.state) == this.iconKey(this.saved) &&
-      ICON_SLOTS.every((s) => this.has(b[s]))
+      slots.every((s) => this.has(b[s]))
     ) {
       const keep = {};
-      ICON_SLOTS.forEach((s) => (keep[s] = b[s]));
+      slots.forEach((s) => (keep[s] = b[s]));
       return Promise.resolve(keep);
     }
+    if (outline) {
+      const file = new File(
+        [routericon.svg(this.accent().hex)],
+        "favicon.svg",
+        { type: "image/svg+xml" },
+      );
+      return this.send("favicon", file).then((n) => ({ favicon: n }));
+    }
     w.toast(_("Generating the icons…"));
-    return icons.generate(url).then((files) => {
+    return icons.generate(this.iconUrl()).then((files) => {
       const out = {};
       return ICON_SLOTS.reduce(
         (p, slot) =>
@@ -400,30 +503,66 @@ Brand.prototype = {
     });
   },
 
+  /* The logo option's value: Outline in a non-stock accent is baked and
+     uploaded into the logo slot unless the stored file already wears it.
+     Resolves to { name, key }. */
+  logoFile() {
+    if (this.customLogoUrl())
+      return Promise.resolve({ name: this.state.logo, key: "" });
+    const key = this.outlineKey(this.state);
+    if (key == "stock") return Promise.resolve({ name: "", key: "" });
+    if (this.baked.logoKey == key && this.has(this.baked.logo))
+      return Promise.resolve({ name: this.baked.logo, key: key });
+    const file = new File([routericon.svg(this.accent().hex)], "outline.svg", {
+      type: "image/svg+xml",
+    });
+    return this.send("logo", file).then((name) => ({ name: name, key: key }));
+  },
+
   /* Stage the brand choices as LuCI unsaved changes (the page saves). */
   stage() {
-    return this.iconFiles().then((files) => {
-      if (!uci.get("outline", "branding"))
-        uci.add("outline", "branding", "branding");
-      /* Only what differs: LuCI counts every write as a change. */
-      const put = (opt, val) => {
-        const cur = uci.get("outline", "branding", opt);
-        if (val) {
-          if (cur !== String(val)) uci.set("outline", "branding", opt, val);
-        } else if (cur != null) uci.unset("outline", "branding", opt);
-      };
+    /* One after the other: every upload goes through the same tmp file. */
+    let files;
+    return this.iconFiles()
+      .then((f) => {
+        files = f;
+        return this.logoFile();
+      })
+      .then((logo) => {
+        const choice = this.iconChoice(this.state);
+        const outlineKey = this.outlineKey(this.state);
+        const iconKey =
+          choice == "outline" && outlineKey != "stock" ? outlineKey : "";
+        if (!uci.get("outline", "branding"))
+          uci.add("outline", "branding", "branding");
+        /* Only what differs: LuCI counts every write as a change. */
+        const put = (opt, val) => {
+          const cur = uci.get("outline", "branding", opt);
+          if (val) {
+            if (cur !== String(val)) uci.set("outline", "branding", opt, val);
+          } else if (cur != null) uci.unset("outline", "branding", opt);
+        };
 
-      put("logo", this.logoUrl() ? this.state.logo : "");
-      put("icon", this.iconUrl() ? this.state.icon : "");
-      put("backdrop", this.backdropUrl() ? this.state.backdrop : "");
-      ICON_SLOTS.forEach((s) => put(s, files ? files[s] : ""));
-      /* Options earlier builds wrote and nothing reads any more. */
-      put("app_name", "");
-      put("manifest", "");
-    });
+        put("logo", logo.name);
+        put("logo_router", logo.key);
+        put("icon", choice == "outline" ? "" : choice);
+        put("icon_router", iconKey);
+        this.staged = {
+          logo: logo.key ? logo.name : "",
+          logoKey: logo.key,
+          iconKey: iconKey,
+        };
+        put("backdrop", this.backdropUrl() ? this.state.backdrop : "");
+        ICON_SLOTS.forEach((s) => put(s, files ? files[s] : ""));
+        /* Options earlier builds wrote and nothing reads any more. */
+        put("app_name", "");
+        put("manifest", "");
+      });
   },
 
   markSaved() {
+    if (this.staged) this.baked = this.staged;
+    this.staged = null;
     this.saved = clone(this.state);
   },
 
@@ -515,69 +654,74 @@ Brand.prototype = {
     return row;
   },
 
-  logoRow() {
-    const v = this.logoUrl() ? this.state.logo : "";
-    const tiles = [
-      this.tile({
-        label: "Outline",
-        title: _("Outline (theme default)"),
-        src: themeImage("logo.png"),
-        checked: v == "",
-        onClick: () => this.set("logo", ""),
-      }),
-    ];
+  /* OpenWrt, Outline, then the uploads: the same order in both rows. */
+  baseTiles(field, current) {
+    const tiles = [];
     if (this.openwrtUrl())
       tiles.push(
         this.tile({
           label: "OpenWrt",
           src: this.openwrtUrl(),
-          checked: v == "openwrt",
-          onClick: () => this.set("logo", "openwrt"),
+          checked: current == "openwrt",
+          onClick: () => this.set(field, "openwrt"),
         }),
       );
+    tiles.push(
+      this.tile({
+        label: "Outline",
+        title: _("Outline (theme default) · wears the accent"),
+        src: this.outlineUrl(),
+        checked: current == "outline",
+        onClick: () => this.set(field, ""),
+      }),
+    );
+    return tiles;
+  },
+
+  logoRow() {
+    const v = this.customLogoUrl() ? this.state.logo : "";
     return this.pickerRow(
       _("Logo"),
       _("Sidebar and sign-in page"),
-      tiles.concat(this.uploadTiles("logo", v)),
+      this.baseTiles("logo", v || "outline").concat(
+        this.uploadTiles("logo", v),
+      ),
     );
   },
 
   iconRow() {
-    const v = this.iconUrl() ? this.state.icon : "";
-    const tiles = [
-      this.tile({
-        label: _("Default"),
-        title: _("The theme's icons"),
-        src: themeImage("apple-touch-icon.png"),
-        checked: v == "",
-        onClick: () => this.set("icon", ""),
-      }),
-    ];
-    /* "Same as the logo" only means something once the logo is not the
-       theme's -- the default icons already are the cat. */
-    if (this.logoUrl())
-      tiles.push(
-        this.tile({
-          label: _("Logo"),
-          title: _("Same as the logo"),
-          src: this.logoUrl(),
-          checked: v == "logo",
-          onClick: () => this.set("icon", "logo"),
-        }),
-      );
-    if (this.openwrtUrl())
-      tiles.push(
-        this.tile({
-          label: "OpenWrt",
-          src: this.openwrtUrl(),
-          checked: v == "openwrt",
-          onClick: () => this.set("icon", "openwrt"),
-        }),
-      );
+    const c = this.iconChoice();
+    /* Custom: the logo's upload (the icon then follows the logo), then the
+       icon's own uploads. */
+    const own = [];
+    if (this.has(this.state.logo))
+      own.push({ value: "logo", name: this.state.logo });
+    this.uploadsFor("icon").forEach((a) =>
+      own.push({ value: a.name, name: a.name }),
+    );
+    if (this.has(c) && !own.some((o) => o.value == c))
+      own.unshift({ value: c, name: c });
+    const custom = own.slice(0, 2).map((o, i) => {
+      const a = this.lib.assets.find((x) => x.name == o.name) || {};
+      const meta = [
+        String(a.type || "").toUpperCase(),
+        formatSize(a.size || 0),
+      ];
+      if (a.width && a.height) meta.push(a.width + "×" + a.height);
+      return this.tile({
+        label: i == 0 ? _("Custom") : _("Earlier"),
+        title: o.value == "logo" ? _("Same as the logo") : meta.join(" · "),
+        src: this.assetUrl(o.name),
+        checked: c == o.value,
+        onClick: () => this.set("icon", o.value),
+      });
+    });
     return this.pickerRow(
       _("App icon"),
       _("Tab, home screen and app · every size is made from one picture"),
-      tiles.concat(this.uploadTiles("icon", v)),
+      this.baseTiles("icon", c)
+        .concat(custom)
+        .concat(this.uploadTiles("icon", "").slice(-1)),
     );
   },
 
@@ -604,7 +748,7 @@ return baseclass.extend({
     return L.resolveDefault(callBrandList(), null);
   },
 
-  create(lib, onChange) {
-    return new Brand(lib, onChange);
+  create(lib, onChange, accent) {
+    return new Brand(lib, onChange, accent);
   },
 });

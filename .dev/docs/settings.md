@@ -45,7 +45,8 @@ would squeeze the CSS inside `ui.js`'s template literal (`.ot *` → `.ot*`).
               font_ui, font_ui_weight, font_content, font_code,
               list token 'name=#rrggbb[aa]'      ← derived by palette.tokens()
   branding    logo, icon, favicon, favicon_ico, apple_touch, pwa_192, pwa_512,
-              backdrop, rev
+              backdrop, rev,
+              logo_router, icon_router   ← accent key a baked Router wears
   updates     repo (optional; default tickcount/luci-theme-outline)
 ```
 
@@ -133,6 +134,51 @@ choice leaves no upload behind. An upload commits only `rev`, which sends no
 `config.change`, so a picture awaiting its Save & Apply survives until then. `logo=openwrt` points at
 luci-theme-bootstrap's `logo.svg`. The App icon is rendered in the browser
 (canvas) into the five icon slots on Save.
+
+**Outline** -- the theme's own Logo and App icon, the first choice after
+OpenWrt's in both rows (OpenWrt, Outline, then uploads) -- is a picture that
+wears the accent: a ceramic router under a glass lens, no background, SVG
+only. `outline/routericon.js` builds it from one hex, every colour a literal
+(no `var()`/`color-mix()`), so it renders alike in an `<img>`, as a favicon
+and on the sign-in page, and passes `svg_safe`. Its viewBox is optically
+centred (halfway between the drawing's box centre and its centre of mass).
+It has a dark and a light look in one file (on a light page the white body
+gets a hairline, a deeper side and a denser shadow; the lens stays smoked),
+the light one under `@media (prefers-color-scheme: light)`: in an `<img>` that
+follows the page's `color-scheme`, which `_shared.css` sets from
+`html[data-darkmode]`, so the sidebar, navbar and sign-in logo switch with
+the theme's own mode; in a favicon it follows the browser.
+
+The stock `logo.svg` and `favicon.svg` (`.dev/public/outline/images`) are
+it in the stock dark accent (`#006efe`); `main.css` keeps that folder out of
+Tailwind's scan (an SVG's `transform` attribute is no class). There are no
+stock rasters: header.ut links an ICO and an Apple touch icon only when an
+App icon picture was rendered into them, and the default manifest names
+`favicon.svg` (`sizes: any`). With the stock accent nothing is uploaded. Any
+other accent is baked on Save into two SVG uploads -- the `logo` slot
+(header.ut and sysauth.ut serve it like any upload) and the `favicon` slot,
+the other icon slots cleared -- and the key goes into `logo_router` /
+`icon_router`. The key is `<rev>/<variant>:<accent>`: `REV` in
+`routericon.js` is the drawing's revision, so files baked from an earlier
+drawing are stale (`brand.stale()` makes the page dirty) and the next Save
+bakes them anew; the same key keeps the files. A baked Outline logo is still
+the Outline tile, never a "Custom" one.
+
+`<variant>:<accent>` comes from `Appearance.iconAccent()`: the variant whose
+accent was edited on the page (the shown one first), else the one the stored
+files came from, else the shown one -- so opening the page in the other mode
+changes nothing, though the stock accents differ by a shade (`#006aff` /
+`#006efe`). A named accent counts by its id and is drawn in its dark shade;
+a custom one by its hex. The preview follows the accent live
+(`Appearance.commit()` calls `brand.preview()`; it repaints the rail's and
+panel's `.sidebar-logo` and the phone navbar's `.topbar-brand img`). Uploads
+go one after another -- they share `/tmp/outline-brand.upload`.
+
+The App icon's `logo` value (follow the logo) has no tile of its own: with
+OpenWrt's logo it is the OpenWrt tile, with Outline's the Outline tile, and
+with an uploaded logo that upload shows as the row's Custom tile. Other App
+icon pictures (OpenWrt's, uploads) still go through `icons.js` into all five
+slots. `settings-router-icon.test.js` holds these rules and the tile order.
 
 The backdrop is a raster slot (`backdrop`): the browser re-encodes a picture
 larger than 2560 px or 1.5 MB as a JPEG of at most 2560 px (it is blurred

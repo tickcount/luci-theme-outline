@@ -137,7 +137,7 @@
 	};
 	// `openwrt` picks OpenWrt's logo from luci-theme-bootstrap, where installed.
 	const logo_url = (branding.logo == 'openwrt' && access('/www/luci-static/bootstrap/logo.svg'))
-		? '/luci-static/bootstrap/logo.svg' : brand_url('logo', `${media}/images/logo.png`);
+		? '/luci-static/bootstrap/logo.svg' : brand_url('logo', `${media}/images/logo.svg`);
 	const favicon_url = brand_url('favicon', `${media}/images/favicon.svg`);
 	// Appearance › Backdrop: a picture from the brand library behind the
 	// whole window, blurred, under a coat of the page colour (_nav.css).
@@ -146,8 +146,10 @@
 	const backdrop_coat = int_in(appearance.backdrop_coat, 86, 100, 90);
 	const backdrop_fit = { fit: 'fit', stretch: 'stretch', center: 'center', tile: 'tile' }[appearance.backdrop_fit] ?? 'fill';
 	const favicon_type = match(favicon_url, /\.svg(\?|$)/) ? 'image/svg+xml' : (match(favicon_url, /\.png(\?|$)/) ? 'image/png' : '');
-	const favicon_ico_url = brand_url('favicon_ico', `${media}/images/favicon.ico`);
-	const apple_touch_url = brand_url('apple_touch', `${media}/images/apple-touch-icon.png`);
+	// The theme's own icon is SVG only (favicon.svg); an ICO and an Apple
+	// touch icon exist only when an App icon picture was rendered into them.
+	const favicon_ico_url = brand_url('favicon_ico', null);
+	const apple_touch_url = brand_url('apple_touch', null);
 	// The installed web app's manifest follows the PWA slots and name. It is
 	// written here, on render, whenever the committed settings no longer
 	// match the file -- after Save & Apply the next page brings it up to date.
@@ -162,8 +164,7 @@
 	if (length(pwa_icons) || app_name) {
 		if (!length(pwa_icons))
 			pwa_icons = [
-				{ src: `${media}/images/web-app-manifest-192x192.png`, sizes: '192x192', type: 'image/png', purpose: 'maskable' },
-				{ src: `${media}/images/web-app-manifest-512x512.png`, sizes: '512x512', type: 'image/png', purpose: 'maskable' }
+				{ src: `${media}/images/favicon.svg`, sizes: 'any', type: 'image/svg+xml' }
 			];
 		const manifest = sprintf('%J', {
 			name: app_name ?? 'Outline', short_name: app_name ?? 'Outline', start_url: '/cgi-bin/luci/', display: 'standalone',
@@ -222,8 +223,8 @@
 		{% endfor %}
 		{% endif %}
 		<link rel="icon" href="{{ favicon_url }}"{% if (favicon_type): %} type="{{ favicon_type }}"{% endif %}>
-		<link rel="icon" href="{{ favicon_ico_url }}" sizes="any">
-		<link rel="apple-touch-icon" href="{{ apple_touch_url }}">
+		{% if (favicon_ico_url): %}<link rel="icon" href="{{ favicon_ico_url }}" sizes="any">{% endif %}
+		{% if (apple_touch_url): %}<link rel="apple-touch-icon" href="{{ apple_touch_url }}">{% endif %}
 		<link rel="manifest" href="{{ manifest_url }}">
 		{% if (dispatched && dispatched.css): %}
 		<link rel="stylesheet" href="{{ resource }}/{{ dispatched.css }}" data-luci-node-css="{{ entityencode(dispatched.css, true) }}">
@@ -275,9 +276,10 @@
 					if (!sb || !cache || cache.v !== 8 || cache.lang !== document.documentElement.lang) return;
 
 					sb.innerHTML = cache.html;
-					/* The cached HTML holds the logo of the page that cached it. */
-					var logo = sb.querySelector('.sidebar-logo');
-					if (logo && sb.getAttribute('data-logo')) logo.setAttribute('src', sb.getAttribute('data-logo'));
+					/* The cached HTML holds the logo of the page that cached it --
+					   in the rail and in the panel's title row alike. */
+					var logo = sb.getAttribute('data-logo');
+					if (logo) sb.querySelectorAll('.sidebar-logo').forEach(function(img) { img.setAttribute('src', logo); });
 					sb.setAttribute('data-outline-built', '1');
 					sb.setAttribute('data-outline-restored', '1');
 

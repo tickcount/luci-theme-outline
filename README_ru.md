@@ -30,7 +30,7 @@ Outline делает LuCI вашего роутера похожим на **на
 установленные вами приложения, подстроятся под неё.
 
 <p align="center">
-  <img src=".github/preview/hero.png" alt="Outline в светлой и тёмной теме" width="100%">
+  <img src=".github/preview/hero.webp" alt="Вход Outline в светлой и тёмной теме" width="100%">
 </p>
 
 ## 🚀 Быстрый старт
@@ -99,31 +99,35 @@ Outline делает LuCI вашего роутера похожим на **на
 
 <table>
   <tr>
-    <td width="50%" valign="top"><img src=".github/preview/mounts.png" alt="Точки монтирования"><p align="center"><sub><b>Страницы настроек</b>: карточки с тонкими разделителями и кнопки-пилюли</sub></p></td>
-    <td width="50%" valign="top"><img src=".github/preview/login.png" alt="Вход"><p align="center"><sub><b>Вход</b></sub></p></td>
+    <td width="50%" valign="top"><img src=".github/preview/interfaces.webp" alt="Интерфейсы"><p align="center"><sub><b>Интерфейсы</b></sub></p></td>
+    <td width="50%" valign="top"><img src=".github/preview/interface-advanced.webp" alt="Настройки интерфейса, Advanced Settings"><p align="center"><sub><b>Настройки интерфейса</b> в диалоге: Advanced Settings</sub></p></td>
   </tr>
   <tr>
-    <td valign="top"><img src=".github/preview/analytics.png" alt="Графики в реальном времени"><p align="center"><sub><b>Графики реального времени</b> в стиле Analytics</sub></p></td>
-    <td valign="top"><img src=".github/preview/palette.png" alt="Командная палитра"><p align="center"><sub><b>Командная палитра</b>: <kbd>⌘</kbd> <kbd>K</kbd></sub></p></td>
-  </tr>
-  <tr>
-    <td valign="top"><img src=".github/preview/interfaces.png" alt="Интерфейсы"><p align="center"><sub><b>Интерфейсы</b></sub></p></td>
-    <td valign="top"><img src=".github/preview/rules.png" alt="Правила межсетевого экрана"><p align="center"><sub><b>Правила межсетевого экрана</b></sub></p></td>
-  </tr>
-  <tr>
-    <td valign="top"><img src=".github/preview/wireless.png" alt="Беспроводная сеть"><p align="center"><sub><b>Беспроводная сеть</b></sub></p></td>
-    <td valign="top"><img src=".github/preview/load.png" alt="График загрузки"><p align="center"><sub><b>Загрузка</b></sub></p></td>
+    <td valign="top"><img src=".github/preview/firewall-zones.webp" alt="Зоны межсетевого экрана"><p align="center"><sub><b>Межсетевой экран</b>: зоны и общие настройки</sub></p></td>
+    <td valign="top"><img src=".github/preview/rules.webp" alt="Правила межсетевого экрана"><p align="center"><sub><b>Правила межсетевого экрана</b></sub></p></td>
   </tr>
 </table>
 
 <p align="center">
-  <img src=".github/preview/login-backdrop.png" alt="Вход поверх фоновой картинки" width="100%">
+  <img src=".github/preview/outline-settings.webp" alt="Настройки Outline" width="100%">
+  <br>
+  <sub><b>Настройки Outline</b> в System › Language and Style</sub>
+</p>
+
+<p align="center">
+  <img src=".github/preview/layouts.webp" alt="Варианты боковой и верхней панели" width="100%">
+  <br>
+  <sub><b>Навигация</b>: боковая панель (прикреплённая, плавающая или встроенная) или верхняя панель из пилюль либо полосой.</sub>
+</p>
+
+<p align="center">
+  <img src=".github/preview/backdrop.webp" alt="Фоновая картинка за правилами межсетевого экрана, светлая и тёмная тема" width="100%">
   <br>
   <sub><b>Фоновая картинка</b> за всем окном, включая вход: размыта под цветом страницы, на светлой и тёмной теме.</sub>
 </p>
 
 <p align="center">
-  <img src=".github/preview/mobile.png" alt="Outline на телефонах" width="100%">
+  <img src=".github/preview/mobile.webp" alt="Outline на телефонах" width="100%">
   <br>
   <sub><b>На телефонах</b>: меню в матовой выдвижной панели, верхняя полоса в стиле выбранного навбара.</sub>
 </p>

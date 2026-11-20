@@ -17,7 +17,7 @@
 		? '/luci-static/bootstrap/logo.svg'
 		: (brand_logo && match(brand_logo, /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/) && access(`/www/luci-static/outline-brand/${brand_logo}`))
 		? `/luci-static/outline-brand/${brand_logo}?v=${match(branding.rev ?? '', /^[0-9]+$/) ? branding.rev : '0'}`
-		: `${media}/images/logo.png`;
+		: `${media}/images/logo.svg`;
 	const hostname = entityencode(striptags(boardinfo?.hostname ?? 'OpenWrt'));
 	// A router without a root password (fresh or reset) logs in with an empty
 	// field: say so in it, and offer the arrow at once.

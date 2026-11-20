@@ -29,7 +29,7 @@ controls, hairline cards, calm type, **light and dark**, with pages that switch
 including the apps you added, follows it.
 
 <p align="center">
-  <img src=".github/preview/hero.png" alt="Outline in light and dark" width="100%">
+  <img src=".github/preview/hero.webp" alt="Outline sign-in in light and dark" width="100%">
 </p>
 
 ## 🚀 Quick start
@@ -98,31 +98,35 @@ including the apps you added, follows it.
 
 <table>
   <tr>
-    <td width="50%" valign="top"><img src=".github/preview/mounts.png" alt="Mount Points"><p align="center"><sub><b>Settings pages</b>: cards with hairline rows and pill buttons</sub></p></td>
-    <td width="50%" valign="top"><img src=".github/preview/login.png" alt="Login"><p align="center"><sub><b>Sign-in</b></sub></p></td>
+    <td width="50%" valign="top"><img src=".github/preview/interfaces.webp" alt="Interfaces"><p align="center"><sub><b>Interfaces</b></sub></p></td>
+    <td width="50%" valign="top"><img src=".github/preview/interface-advanced.webp" alt="Interface settings, Advanced Settings"><p align="center"><sub><b>Interface settings</b> in a dialog: Advanced Settings</sub></p></td>
   </tr>
   <tr>
-    <td valign="top"><img src=".github/preview/analytics.png" alt="Realtime charts"><p align="center"><sub><b>Realtime graphs</b> in the Analytics style</sub></p></td>
-    <td valign="top"><img src=".github/preview/palette.png" alt="Command palette"><p align="center"><sub><b>Command palette</b>: <kbd>⌘</kbd> <kbd>K</kbd></sub></p></td>
-  </tr>
-  <tr>
-    <td valign="top"><img src=".github/preview/interfaces.png" alt="Interfaces"><p align="center"><sub><b>Interfaces</b></sub></p></td>
-    <td valign="top"><img src=".github/preview/rules.png" alt="Firewall rules"><p align="center"><sub><b>Firewall rules</b></sub></p></td>
-  </tr>
-  <tr>
-    <td valign="top"><img src=".github/preview/wireless.png" alt="Wireless"><p align="center"><sub><b>Wireless</b></sub></p></td>
-    <td valign="top"><img src=".github/preview/load.png" alt="Load chart"><p align="center"><sub><b>Load</b></sub></p></td>
+    <td valign="top"><img src=".github/preview/firewall-zones.webp" alt="Firewall zones"><p align="center"><sub><b>Firewall</b>: zones and general settings</sub></p></td>
+    <td valign="top"><img src=".github/preview/rules.webp" alt="Firewall rules"><p align="center"><sub><b>Firewall rules</b></sub></p></td>
   </tr>
 </table>
 
 <p align="center">
-  <img src=".github/preview/login-backdrop.png" alt="Sign-in over a backdrop picture" width="100%">
+  <img src=".github/preview/outline-settings.webp" alt="Outline settings" width="100%">
+  <br>
+  <sub><b>Outline settings</b> under System › Language and Style</sub>
+</p>
+
+<p align="center">
+  <img src=".github/preview/layouts.webp" alt="Sidebar and navbar layouts" width="100%">
+  <br>
+  <sub><b>Navigation</b>: a docked, floating or inset sidebar, or pills or a bar along the top.</sub>
+</p>
+
+<p align="center">
+  <img src=".github/preview/backdrop.webp" alt="A backdrop picture behind Firewall rules, light and dark" width="100%">
   <br>
   <sub><b>A backdrop picture</b> behind the whole window, the sign-in included: blurred under the page colour, in light and dark.</sub>
 </p>
 
 <p align="center">
-  <img src=".github/preview/mobile.png" alt="Outline on phones" width="100%">
+  <img src=".github/preview/mobile.webp" alt="Outline on phones" width="100%">
   <br>
   <sub><b>On phones</b>: the menu in a frosted drawer, the top bar in your navbar's style.</sub>
 </p>

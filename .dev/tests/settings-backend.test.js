@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { root } from "./settings-load.js";
+import { root, loadModule } from "./settings-load.js";
 
 // `ucode -c` compiles a call to an undefined function without complaint; it
 // only fails when that line runs. So every call in the rpcd backend must name
@@ -40,6 +40,11 @@ test("SVG branding validation accepts pictures and rejects active content", () =
     readFileSync(join(root, ".dev/public/outline/images/favicon.svg"), "utf8"),
   ])
     assert.equal(safe(svg), true, svg);
+
+  // Outline's picture is baked in the browser and uploaded like any SVG.
+  const outline = loadModule("outline/routericon.js");
+  for (const accent of ["#3a83f7", "#10a37f", "not-a-colour"])
+    assert.equal(safe(outline.svg(accent)), true, accent);
 
   for (const svg of [
     "<html></html>",

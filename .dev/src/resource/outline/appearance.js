@@ -157,13 +157,19 @@ const Page = {
 
   render(data) {
     this.data = data[0] || {};
-    this.brand = brand.create(data[1], () => this.paint());
+    this.brand = brand.create(
+      data[1],
+      () => this.paint(),
+      (prefer) => this.iconAccent(prefer),
+    );
     this.state = stateFrom(this.initialMode());
     this.saved = clone(this.state);
     this.separate = false;
     this.advanced = /[#&]advanced\b/.test(location.hash);
     this.root = E("div", { class: "ot" });
     this.captureOriginal();
+    /* Stale Outline files (another drawing): show what Save will bake. */
+    if (this.brand.stale()) this.brand.preview();
 
     /* The header toggle and ⌘K can flip the mode under us; the single
 		   theme card follows whichever variant is showing. Leaving the page
@@ -358,8 +364,40 @@ const Page = {
     this.writeStyle(this.stylesheet(tmp), tmp);
   },
 
+  /* The accent Outline's brand picture wears, as { key, hex, stock }; key is
+     "<variant>:<accent>". Which variant: one whose accent was edited on
+     this page (the shown one first), else `prefer` -- the variant the stored
+     files came from -- else the shown one. So only an accent edit (or a
+     first bake) changes the key; opening the page in the other mode does
+     not, though the two stock accents differ by a shade. A named accent
+     counts by its id and is drawn in its dark shade (the tile is dark). */
+  iconAccent(prefer) {
+    const id = (t) => {
+      const named = presets.ACCENTS.find((a) => a.id == t.accent_name);
+      return named ? named.id : String(t.accent || "").toLowerCase();
+    };
+    const edited = (v) => id(this.state[v]) != id(this.saved[v]);
+    const shown = this.effectiveVariant();
+    const other = shown == "light" ? "dark" : "light";
+    const v = edited(shown)
+      ? shown
+      : edited(other)
+        ? other
+        : prefer == "light" || prefer == "dark"
+          ? prefer
+          : shown;
+    const t = this.state[v];
+    const named = presets.ACCENTS.find((a) => a.id == t.accent_name);
+    const hex = (named && presets.accentHex(named.id, "dark")) || t.accent;
+    /* The stock accent: the theme's own images already wear it. */
+    const stock = id(t) == id({ accent: presets.VERCEL[v].accent });
+    return { key: v + ":" + id(t), hex: hex, stock: stock };
+  },
+
   commit(paint) {
     this.writeStyle(this.stylesheet());
+    /* The Router logo and icon follow the accent while previewed. */
+    this.brand.preview();
     if (paint !== false) this.paint();
   },
 
@@ -466,7 +504,8 @@ const Page = {
   dirty() {
     return (
       JSON.stringify(this.state) != JSON.stringify(this.saved) ||
-      JSON.stringify(this.brand.state) != JSON.stringify(this.brand.saved)
+      JSON.stringify(this.brand.state) != JSON.stringify(this.brand.saved) ||
+      this.brand.stale()
     );
   },
 

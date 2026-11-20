@@ -51,7 +51,7 @@ test("production assets stay within raw-transfer budgets", () => {
   const router = bytes("resources/router-outline.js");
   const sidebar = bytes("resources/sidebar-outline.js");
   const font = bytes("outline/geist-latin-wght-normal.woff2");
-  const logo = bytes("outline/images/logo.png");
+  const logo = bytes("outline/images/logo.svg");
 
   // 165K: the ChatGPT restyle covers every LuCI widget (switches, menus,
   // split buttons, meters, chart cards, Lucide replacements for LuCI's

@@ -180,7 +180,7 @@ return baseclass.extend({
         E("a", { class: "sidebar-rail-home", href: "/", "aria-label": host }, [
           E("img", {
             class: "sidebar-logo",
-            src: sidebar.dataset.logo || `${media}/images/logo.png`,
+            src: sidebar.dataset.logo || `${media}/images/logo.svg`,
             alt: "",
             width: "20",
             height: "20",
@@ -225,7 +225,7 @@ return baseclass.extend({
             // Shown beside the name in the desktop sidebars (_nav.css).
             E("img", {
               class: "sidebar-logo",
-              src: sidebar.dataset.logo || `${media}/images/logo.png`,
+              src: sidebar.dataset.logo || `${media}/images/logo.svg`,
               alt: "",
               width: "20",
               height: "20",

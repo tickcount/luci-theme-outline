@@ -26,6 +26,8 @@
    become utilities. */
 @source not "../resource/outline";
 @source not "../resource/patches/admin-system-system.js";
+/* The theme's images: an SVG's attributes (transform, …) are no classes. */
+@source not "../../public/outline/images";
 
 @custom-variant dark (&:where([data-darkmode=true], [data-darkmode=true] *));
 

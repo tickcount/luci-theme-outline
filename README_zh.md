@@ -28,7 +28,7 @@ Outline 让路由器的 LuCI 看起来、用起来都像 **ChatGPT 的设置页*
 所有页面，包括你另外安装的应用，都会随之换上新外观。
 
 <p align="center">
-  <img src=".github/preview/hero.png" alt="Outline 的浅色与深色" width="100%">
+  <img src=".github/preview/hero.webp" alt="Outline 登录页，浅色与深色" width="100%">
 </p>
 
 ## 🚀 快速开始
@@ -96,31 +96,35 @@ Outline 让路由器的 LuCI 看起来、用起来都像 **ChatGPT 的设置页*
 
 <table>
   <tr>
-    <td width="50%" valign="top"><img src=".github/preview/mounts.png" alt="挂载点"><p align="center"><sub><b>设置页</b>：细线分隔的卡片与胶囊按钮</sub></p></td>
-    <td width="50%" valign="top"><img src=".github/preview/login.png" alt="登录页"><p align="center"><sub><b>登录页</b></sub></p></td>
+    <td width="50%" valign="top"><img src=".github/preview/interfaces.webp" alt="接口"><p align="center"><sub><b>接口</b></sub></p></td>
+    <td width="50%" valign="top"><img src=".github/preview/interface-advanced.webp" alt="接口设置：高级设置"><p align="center"><sub><b>接口设置</b>对话框：高级设置</sub></p></td>
   </tr>
   <tr>
-    <td valign="top"><img src=".github/preview/analytics.png" alt="实时图表"><p align="center"><sub><b>实时图表</b>，Analytics 风格</sub></p></td>
-    <td valign="top"><img src=".github/preview/palette.png" alt="命令面板"><p align="center"><sub><b>命令面板</b>：<kbd>⌘</kbd> <kbd>K</kbd></sub></p></td>
-  </tr>
-  <tr>
-    <td valign="top"><img src=".github/preview/interfaces.png" alt="接口"><p align="center"><sub><b>接口</b></sub></p></td>
-    <td valign="top"><img src=".github/preview/rules.png" alt="防火墙规则"><p align="center"><sub><b>防火墙规则</b></sub></p></td>
-  </tr>
-  <tr>
-    <td valign="top"><img src=".github/preview/wireless.png" alt="无线"><p align="center"><sub><b>无线</b></sub></p></td>
-    <td valign="top"><img src=".github/preview/load.png" alt="负载图表"><p align="center"><sub><b>负载</b></sub></p></td>
+    <td valign="top"><img src=".github/preview/firewall-zones.webp" alt="防火墙区域"><p align="center"><sub><b>防火墙</b>：区域与常规设置</sub></p></td>
+    <td valign="top"><img src=".github/preview/rules.webp" alt="防火墙规则"><p align="center"><sub><b>防火墙规则</b></sub></p></td>
   </tr>
 </table>
 
 <p align="center">
-  <img src=".github/preview/login-backdrop.png" alt="登录页上的背景图" width="100%">
+  <img src=".github/preview/outline-settings.webp" alt="Outline 设置" width="100%">
+  <br>
+  <sub><b>Outline 设置</b>，位于 System › Language and Style</sub>
+</p>
+
+<p align="center">
+  <img src=".github/preview/layouts.webp" alt="侧边栏与导航栏布局" width="100%">
+  <br>
+  <sub><b>导航</b>：停靠、悬浮或内嵌的侧边栏，或顶部的胶囊或横条导航栏。</sub>
+</p>
+
+<p align="center">
+  <img src=".github/preview/backdrop.webp" alt="防火墙规则页后方的背景图，浅色与深色" width="100%">
   <br>
   <sub><b>背景图</b>铺在整个窗口后方，登录页也包括在内：在页面颜色下模糊显示，浅色与深色均可。</sub>
 </p>
 
 <p align="center">
-  <img src=".github/preview/mobile.png" alt="Outline 在手机上" width="100%">
+  <img src=".github/preview/mobile.webp" alt="Outline 在手机上" width="100%">
   <br>
   <sub><b>手机上</b>：菜单在磨砂抽屉中，顶栏沿用所选导航栏的样式。</sub>
 </p>
