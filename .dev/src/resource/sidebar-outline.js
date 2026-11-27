@@ -29,6 +29,44 @@ return baseclass.extend({
     this.initThemeFollow();
     this.initTabReveal();
     this.initDropdownClamp();
+    this.initScrollHold();
+  },
+
+  /* ── Scroll hold ── */
+
+  // A poll (Status › Overview every 5 s) rebuilds each block with
+  // dom.content(): empty the container, then fill it. Where WebKit lays the
+  // page out between the two (Safari), the scrolling #maincontent is clamped
+  // to the shorter page and the refill never gives the offset back: the
+  // reader is thrown down to the bottom of the page. Chromium defers the
+  // layout to the end of the task, and with the window as the scroller (the
+  // stock themes) the browser's own scroll anchoring covers it. Remember the
+  // offset before the first rebuild of a task and put it back once the task's
+  // rebuilds are done, before the next paint. A swap under way is the
+  // router's: it sets the offset itself once the swap commits.
+  initScrollHold() {
+    const dom = window.L?.dom;
+    const main = document.getElementById("maincontent");
+    if (!dom?.content || !main || dom.content.heldScroll) return;
+    const content = dom.content;
+    let held = null;
+    const restore = () => {
+      const top = held;
+      held = null;
+      if (main.scrollTop !== top) main.scrollTop = top;
+    };
+    dom.content = function (node) {
+      if (
+        held === null &&
+        main.contains(node) &&
+        !main.querySelector(".view-staging")
+      ) {
+        held = main.scrollTop;
+        queueMicrotask(restore);
+      }
+      return content.apply(this, arguments);
+    };
+    dom.content.heldScroll = true;
   },
 
   /* ── Tab rows ── */

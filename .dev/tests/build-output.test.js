@@ -134,8 +134,9 @@ test("production assets stay within raw-transfer budgets", () => {
     // transition on the overlay, the closed state on the dialog), ~0.3 KB.
     // 322.5K: Appearance › Navigation's styles and the backdrop (main.css
     // +25.5 KB, menu and sidebar JS +2 KB).
-    main + menu + router + sidebar + font <= 322_500,
-    "admin assets exceed 322.5 KB",
+    // 323K: the sidebar's scroll hold for polled views in Safari, ~0.4 KB.
+    main + menu + router + sidebar + font <= 323_000,
+    "admin assets exceed 323 KB",
   );
   assert.ok(login + font + logo <= 60_000, "login assets exceed 60 KB");
 });
